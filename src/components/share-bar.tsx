@@ -4,10 +4,11 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { createCode } from "@/lib/codes";
-import { defaultExpiresAt } from "@/lib/expiry";
+import { defaultExpiresAt, todayIso } from "@/lib/expiry";
 
 export function ShareBar({ onShared }: { onShared?: () => void }) {
   const [code, setCode] = useState("");
+  const [expiresAt, setExpiresAt] = useState(defaultExpiresAt);
   const queryClient = useQueryClient();
 
   const create = useMutation({
@@ -16,7 +17,7 @@ export function ShareBar({ onShared }: { onShared?: () => void }) {
         data: {
           code,
           discount: "15% off",
-          expires_at: defaultExpiresAt(),
+          expires_at: expiresAt,
         },
       }),
     onSuccess: () => {
@@ -29,6 +30,7 @@ export function ShareBar({ onShared }: { onShared?: () => void }) {
     try {
       await create.mutateAsync();
       setCode("");
+      setExpiresAt(defaultExpiresAt());
       toast.success("Shared.");
       onShared?.();
     } catch (err) {
@@ -38,16 +40,36 @@ export function ShareBar({ onShared }: { onShared?: () => void }) {
 
   return (
     <form id="share" onSubmit={(e) => void onSubmit(e)} className="share-form">
-      <Input
-        value={code}
-        onChange={(e) => setCode(e.target.value)}
-        required
-        minLength={3}
-        maxLength={40}
-        placeholder="Pizza Hut code (e.g., PIZZA50OFF)"
-        aria-label="Pizza Hut promo code"
-        className="share-input !rounded-none !border-0 !bg-transparent !shadow-none focus-visible:!ring-0"
-      />
+      <div className="share-control share-code-control">
+        <label htmlFor="share-code" className="share-label">
+          Promo code
+        </label>
+        <Input
+          id="share-code"
+          value={code}
+          onChange={(e) => setCode(e.target.value)}
+          required
+          minLength={3}
+          maxLength={40}
+          placeholder="PIZZA50OFF"
+          autoComplete="off"
+          className="share-input !rounded-none !border-0 !bg-transparent !text-card-foreground !shadow-none focus-visible:!ring-0"
+        />
+      </div>
+      <div className="share-control share-date-control">
+        <label htmlFor="share-expiry" className="share-label">
+          Expires
+        </label>
+        <Input
+          id="share-expiry"
+          type="date"
+          required
+          min={todayIso()}
+          value={expiresAt}
+          onChange={(e) => setExpiresAt(e.target.value)}
+          className="share-input share-date-input !rounded-none !border-0 !bg-transparent !text-card-foreground !shadow-none focus-visible:!ring-0"
+        />
+      </div>
       <Button type="submit" disabled={create.isPending} className="share-button">
         {create.isPending ? "Sharing" : "Share"}
       </Button>

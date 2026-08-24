@@ -9,7 +9,7 @@ import { listCodes } from "@/lib/codes";
 
 export const Route = createFileRoute("/")({
   loader: async () => {
-    const codes = await listCodes({ data: { sort: "recent" } });
+    const codes = await listCodes({ data: { view: "all", sort: "recent" } });
     return { codes };
   },
   staleTime: 0,
@@ -26,8 +26,8 @@ function Home() {
   }, []);
 
   const codesQuery = useQuery({
-    queryKey: ["codes", "open", "recent"],
-    queryFn: () => listCodes({ data: { view: "open", sort: "recent" } }),
+    queryKey: ["codes", "all", "recent"],
+    queryFn: () => listCodes({ data: { view: "all", sort: "recent" } }),
     enabled: live,
     placeholderData: initial.codes,
   });

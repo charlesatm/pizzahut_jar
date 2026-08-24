@@ -3,7 +3,7 @@ import { format, isValid, parseISO } from "date-fns";
 import { useState } from "react";
 import { toast } from "sonner";
 import { grabCode, markInvalid, markUsed, type PromoCode } from "@/lib/codes";
-import { copyText } from "@/lib/utils";
+import { cn, copyText } from "@/lib/utils";
 
 function formatDay(value: string | null) {
   if (!value) return "";
@@ -16,6 +16,14 @@ export function CodeCard({ code }: { code: PromoCode }) {
   const queryClient = useQueryClient();
   const [copied, setCopied] = useState(false);
   const closed = code.status !== "open";
+  const state =
+    code.status === "open"
+      ? { theme: "unused", label: "Unused" }
+      : code.status === "claimed"
+        ? { theme: "used", label: "Used" }
+        : code.status === "expired"
+          ? { theme: "invalid", label: "Expired" }
+          : { theme: "invalid", label: "Not good" };
 
   function patch(next: Partial<PromoCode>) {
     queryClient.setQueriesData<PromoCode[]>({ queryKey: ["codes"] }, (old) =>
@@ -30,12 +38,18 @@ export function CodeCard({ code }: { code: PromoCode }) {
   const used = useMutation({
     mutationFn: () => markUsed({ data: { id: code.id } }),
     onMutate: () => patch({ status: "claimed" }),
-    onError: () => void queryClient.invalidateQueries({ queryKey: ["codes"] }),
+    onSuccess: () => toast.success("Marked as used."),
+    onError: (error) =>
+      toast.error(error instanceof Error ? error.message : "Could not update that code."),
+    onSettled: () => void queryClient.invalidateQueries({ queryKey: ["codes"] }),
   });
   const invalid = useMutation({
     mutationFn: () => markInvalid({ data: { id: code.id } }),
     onMutate: () => patch({ status: "invalid" }),
-    onError: () => void queryClient.invalidateQueries({ queryKey: ["codes"] }),
+    onSuccess: () => toast.success("Marked as not good."),
+    onError: (error) =>
+      toast.error(error instanceof Error ? error.message : "Could not update that code."),
+    onSettled: () => void queryClient.invalidateQueries({ queryKey: ["codes"] }),
   });
 
   async function handleCopy() {
@@ -47,41 +61,48 @@ export function CodeCard({ code }: { code: PromoCode }) {
   }
 
   return (
-    <article className="code-list-card">
+    <article className={cn("code-list-card", `code-list-card-${state.theme}`)}>
+      <div className="code-card-heading">
+        <span className="code-status">{state.label}</span>
+        <span className="code-expiry">
+          {code.expires_at ? formatDay(code.expires_at) : "No expiry"}
+        </span>
+      </div>
       <button
         type="button"
         onClick={() => void handleCopy()}
-        className="w-full text-left"
+        className="code-card-copy"
         aria-label={`Copy ${code.code}`}
       >
-        <p className="font-mono text-sm font-semibold tracking-wide text-card-foreground">
-          {copied ? "COPIED" : code.code}
-        </p>
-        <p className="mt-1 text-xs text-card-foreground/65">{code.discount}</p>
-        <p className="mt-1 text-xs text-card-foreground/45">
-          {code.expires_at ? `Expires ${formatDay(code.expires_at)}` : "Shared"}
-        </p>
+        <p className="code-card-value">{copied ? "COPIED" : code.code}</p>
+        <p className="code-card-deal">{code.discount}</p>
       </button>
       {code.status === "open" ? (
-        <div className="mt-4 flex gap-4 text-xs text-card-foreground/55">
+        <div className="code-card-actions">
           <button
             type="button"
-            className="min-h-11 transition-colors hover:text-card-foreground"
+            className="code-card-action code-card-action-used"
+            disabled={used.isPending || invalid.isPending}
             onClick={() => used.mutate()}
           >
-            Used
+            Mark used
           </button>
           <button
             type="button"
-            className="min-h-11 transition-colors hover:text-card-foreground"
+            className="code-card-action code-card-action-invalid"
+            disabled={used.isPending || invalid.isPending}
             onClick={() => invalid.mutate()}
           >
-            No good
+            Not good
           </button>
         </div>
       ) : (
-        <p className="mt-3 text-xs text-card-foreground/45">
-          {code.status === "claimed" ? "Used" : "No good"}
+        <p className="code-card-state-copy">
+          {code.status === "claimed"
+            ? "This code has been used."
+            : code.status === "expired"
+              ? "This code has expired."
+              : "Reported as not working."}
         </p>
       )}
     </article>

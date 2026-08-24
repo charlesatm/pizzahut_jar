@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { getSql } from "@/lib/db";
-import { defaultExpiresAt } from "@/lib/expiry";
+import { defaultExpiresAt, todayIso } from "@/lib/expiry";
 
 export const PIZZA_HUT = "Pizza Hut";
 
@@ -48,9 +48,7 @@ export const listCodes = createServerFn({ method: "GET" })
     const where: string[] = [HUT];
 
     if (data.view !== "all") {
-      where.push(
-        `status = 'open' and (expires_at is null or expires_at >= current_date)`,
-      );
+      where.push(`status = 'open' and (expires_at is null or expires_at >= current_date)`);
     }
 
     const clause = `where ${where.join(" and ")}`;
@@ -77,11 +75,10 @@ export const listCodes = createServerFn({ method: "GET" })
     return rows;
   });
 
-export const getStats = createServerFn({ method: "GET" }).handler(
-  async (): Promise<JarStats> => {
-    const sql = await getSql();
-    const rows = await sql.query<JarStats>(
-      `select
+export const getStats = createServerFn({ method: "GET" }).handler(async (): Promise<JarStats> => {
+  const sql = await getSql();
+  const rows = await sql.query<JarStats>(
+    `select
          count(*) filter (
            where status = 'open'
              and (expires_at is null or expires_at >= current_date)
@@ -90,10 +87,9 @@ export const getStats = createServerFn({ method: "GET" }).handler(
          coalesce(sum(thanks), 0)::int as thanks_count
        from promo_codes
        where ${HUT}`,
-    );
-    return rows[0] ?? { open_count: 0, grab_count: 0, thanks_count: 0 };
-  },
-);
+  );
+  return rows[0] ?? { open_count: 0, grab_count: 0, thanks_count: 0 };
+});
 
 const createInput = z.object({
   code: z.string().trim().min(3).max(40),
@@ -102,7 +98,8 @@ const createInput = z.object({
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/, "Expiry date is required")
     .or(z.literal(""))
-    .transform((value) => value || defaultExpiresAt()),
+    .transform((value) => value || defaultExpiresAt())
+    .refine((value) => value >= todayIso(), "Expiry date cannot be in the past"),
 });
 
 export const createCode = createServerFn({ method: "POST" })

@@ -43,6 +43,15 @@
   --shadow-card: 0 0 0 1px rgba(12, 13, 15, 0.08);
   --shadow-card-hover: 0 0 0 1px rgba(12, 13, 15, 0.14), 0 5px 18px rgba(0, 0, 0, 0.055);
   --shadow-input: 0 0 0 1px rgba(255, 255, 255, 0.08), 0 12px 34px rgba(0, 0, 0, 0.2);
+  --code-unused-bg: #fff5df;
+  --code-unused-fg: #3c2b16;
+  --code-unused-accent: #bf7314;
+  --code-used-bg: #e5f0e8;
+  --code-used-fg: #1d3b29;
+  --code-used-accent: #3e7855;
+  --code-invalid-bg: #f2e5e5;
+  --code-invalid-fg: #522b2b;
+  --code-invalid-accent: #a44b4b;
   --motion-fast: 160ms;
   --motion-enter: 420ms;
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
@@ -238,9 +247,10 @@
   }
 
   .share-form {
-    display: flex;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.25rem;
     width: 100%;
-    min-height: 3.5rem;
     overflow: hidden;
     border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: var(--radius-md);
@@ -259,17 +269,39 @@
       0 12px 34px rgba(0, 0, 0, 0.2);
   }
 
-  .share-input {
-    height: 2.75rem;
+  .share-control {
     min-width: 0;
-    flex: 1;
+    border-radius: var(--radius-sm);
+    padding: 0.4rem 0.75rem 0.25rem;
+  }
+
+  .share-code-control {
+    grid-column: 1 / -1;
+    border-bottom: 1px solid rgba(27, 28, 30, 0.1);
+  }
+
+  .share-label {
+    display: block;
+    color: rgba(27, 28, 30, 0.54);
+    font-size: 0.625rem;
+    font-weight: 650;
+    letter-spacing: 0.12em;
+    line-height: 1;
+    text-transform: uppercase;
+  }
+
+  .share-input {
+    height: 2rem;
+    min-width: 0;
     border: 0;
     background: transparent;
-    color: var(--color-card-foreground);
+    color: var(--color-card-foreground) !important;
+    caret-color: var(--color-primary);
     box-shadow: none;
     font-family: var(--font-mono);
-    font-size: 0.8rem;
+    font-size: 0.82rem;
     letter-spacing: 0.015em;
+    padding: 0;
   }
 
   .share-form .share-input {
@@ -278,9 +310,13 @@
   }
 
   .share-input::placeholder {
-    color: rgba(27, 28, 30, 0.46);
+    color: rgba(27, 28, 30, 0.42);
     font-family: var(--font-sans);
     letter-spacing: -0.01em;
+  }
+
+  .share-date-input {
+    color-scheme: light;
   }
 
   .share-form .share-input:focus-visible {
@@ -290,7 +326,9 @@
   }
 
   .share-button {
-    height: 2.75rem;
+    align-self: stretch;
+    height: auto;
+    min-height: 3.25rem;
     min-width: 5.6rem;
     border-radius: var(--radius-sm);
     padding-inline: 1.25rem;
@@ -327,19 +365,122 @@
   }
 
   .code-list-card {
+    --code-card-bg: var(--code-unused-bg);
+    --code-card-fg: var(--code-unused-fg);
+    --code-card-accent: var(--code-unused-accent);
     border-radius: var(--radius-sm);
-    background: var(--color-card);
-    color: var(--color-card-foreground);
-    padding: 1rem;
-    box-shadow: var(--shadow-card);
+    border-left: 3px solid var(--code-card-accent);
+    background: var(--code-card-bg);
+    color: var(--code-card-fg);
+    padding: 0.9rem 1rem 1rem;
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--code-card-accent) 16%, transparent);
     transition:
       box-shadow var(--motion-fast) ease-out,
       transform var(--motion-fast) ease-out;
   }
 
+  .code-list-card-used {
+    --code-card-bg: var(--code-used-bg);
+    --code-card-fg: var(--code-used-fg);
+    --code-card-accent: var(--code-used-accent);
+  }
+
+  .code-list-card-invalid {
+    --code-card-bg: var(--code-invalid-bg);
+    --code-card-fg: var(--code-invalid-fg);
+    --code-card-accent: var(--code-invalid-accent);
+  }
+
   .code-list-card:hover {
     transform: translateY(-1px);
-    box-shadow: var(--shadow-card-hover);
+    box-shadow:
+      0 0 0 1px color-mix(in srgb, var(--code-card-accent) 28%, transparent),
+      0 5px 18px rgba(0, 0, 0, 0.055);
+  }
+
+  .code-card-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+  }
+
+  .code-status {
+    color: var(--code-card-accent);
+    font-size: 0.625rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .code-expiry {
+    color: color-mix(in srgb, var(--code-card-fg) 56%, transparent);
+    font-size: 0.68rem;
+  }
+
+  .code-card-copy {
+    display: block;
+    width: 100%;
+    min-height: 4rem;
+    padding-block: 0.75rem 0.5rem;
+    text-align: left;
+  }
+
+  .code-card-value {
+    overflow-wrap: anywhere;
+    color: var(--code-card-fg);
+    font-family: var(--font-mono);
+    font-size: 0.92rem;
+    font-weight: 700;
+    letter-spacing: 0.045em;
+  }
+
+  .code-card-deal,
+  .code-card-state-copy {
+    color: color-mix(in srgb, var(--code-card-fg) 68%, transparent);
+    font-size: 0.75rem;
+  }
+
+  .code-card-deal {
+    margin-top: 0.3rem;
+  }
+
+  .code-card-actions {
+    display: flex;
+    gap: 0.5rem;
+    border-top: 1px solid color-mix(in srgb, var(--code-card-accent) 18%, transparent);
+    padding-top: 0.65rem;
+  }
+
+  .code-card-action {
+    min-height: 2.75rem;
+    border-radius: var(--radius-xs);
+    padding-inline: 0.7rem;
+    color: color-mix(in srgb, var(--code-card-fg) 72%, transparent);
+    font-size: 0.72rem;
+    font-weight: 600;
+    transition:
+      background-color var(--motion-fast) ease-out,
+      color var(--motion-fast) ease-out;
+  }
+
+  .code-card-action:hover {
+    background: color-mix(in srgb, var(--code-card-accent) 10%, transparent);
+    color: var(--code-card-fg);
+  }
+
+  .code-card-action:disabled {
+    cursor: wait;
+    opacity: 0.48;
+  }
+
+  .code-card-action-invalid {
+    margin-left: auto;
+  }
+
+  .code-card-state-copy {
+    border-top: 1px solid color-mix(in srgb, var(--code-card-accent) 18%, transparent);
+    padding-top: 0.9rem;
   }
 
   @media (min-width: 40rem) {
@@ -352,6 +493,16 @@
     .home-pizza {
       min-height: 22rem;
       flex-basis: 22rem;
+    }
+
+    .share-form {
+      grid-template-columns: minmax(0, 1fr) 10.5rem auto;
+    }
+
+    .share-code-control {
+      grid-column: auto;
+      border-right: 1px solid rgba(27, 28, 30, 0.1);
+      border-bottom: 0;
     }
 
     .recent-grid {
