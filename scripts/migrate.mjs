@@ -18,7 +18,20 @@ import { dirname, join } from "node:path";
 import pg from "pg";
 import { pendingMigrations } from "./migration-plan.mjs";
 
-const databaseUrl = process.env.DATABASE_URL;
+function withStrictSslMode(value) {
+  if (!value?.trim()) return undefined;
+  try {
+    const url = new URL(value);
+    if (url.searchParams.get("sslmode") === "require") {
+      url.searchParams.set("sslmode", "verify-full");
+    }
+    return url.toString();
+  } catch {
+    return value;
+  }
+}
+
+const databaseUrl = withStrictSslMode(process.env.DATABASE_URL);
 if (!databaseUrl) {
   console.log(
     "[migrate] DATABASE_URL not set — skipping (the PGLite fallback migrates itself).",

@@ -7,8 +7,21 @@ export type DbSource = "neon" | "pglite";
 // "unset" — otherwise production would silently run on the PGLite fallback.
 const rawDatabaseUrl =
   typeof process !== "undefined" ? process.env.DATABASE_URL : undefined;
-const databaseUrl =
-  rawDatabaseUrl && rawDatabaseUrl.trim() ? rawDatabaseUrl : undefined;
+
+function withStrictSslMode(value: string | undefined): string | undefined {
+  if (!value?.trim()) return undefined;
+  try {
+    const url = new URL(value);
+    if (url.searchParams.get("sslmode") === "require") {
+      url.searchParams.set("sslmode", "verify-full");
+    }
+    return url.toString();
+  } catch {
+    return value;
+  }
+}
+
+const databaseUrl = withStrictSslMode(rawDatabaseUrl);
 
 /**
  * Active backend: real **Neon** when `DATABASE_URL` is set (deployed / configured
