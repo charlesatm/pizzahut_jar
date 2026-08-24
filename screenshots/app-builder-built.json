@@ -1,0 +1,38 @@
+{
+  "url": "http://127.0.0.1:8081/",
+  "viewports": {
+    "desktop": {
+      "width": 1280,
+      "height": 800,
+      "status": 200,
+      "title": "Code Jar",
+      "hasCanvas": false,
+      "bodyTextLen": 3010,
+      "bodyTextHash": "9e0094c4f1d012d3eacb23b73a35d7e46ec5da1e3a219f9cc2bd7fa09be35267",
+      "bodyTextPrefix": "Code Jar Spare codes, passed along Drop a code COMMUNITY SPARE D",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/app-builder-built.png"
+    },
+    "mobile": {
+      "width": 390,
+      "height": 844,
+      "status": 200,
+      "title": "Code Jar",
+      "hasCanvas": false,
+      "bodyTextLen": 2984,
+      "bodyTextHash": "59811b2d031727dd19ed35e1aa6269fe40208d673c9a1977c9b76f0054be5121",
+      "bodyTextPrefix": "Code Jar Drop a code COMMUNITY SPARE DRAWER Spare codes belong i",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/app-builder-built-mobile.png"
+    }
+  },
+  "brandWarnings": [],
+  "authWarnings": [],
+  "verdictFile": "/workspace/screenshots/app-builder-built.json",
+  "divergesFromBaseline": false,
+  "baselineReasons": []
+}

@@ -1,0 +1,36 @@
+{
+  "url": "http://127.0.0.1:8080/how-to",
+  "viewports": {
+    "desktop": {
+      "width": 1280,
+      "height": 800,
+      "status": 200,
+      "title": "How to · Code Jar",
+      "hasCanvas": false,
+      "bodyTextLen": 440,
+      "bodyTextHash": "d626314cffa06f2fa21595df4648a7011c3283b4365018d84ab067ce7e9aab99",
+      "bodyTextPrefix": "Code Jar How to Drop a code How to Pizza Hut codes only. Default",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/how-to.png"
+    },
+    "mobile": {
+      "width": 390,
+      "height": 844,
+      "status": 200,
+      "title": "How to · Code Jar",
+      "hasCanvas": false,
+      "bodyTextLen": 440,
+      "bodyTextHash": "d626314cffa06f2fa21595df4648a7011c3283b4365018d84ab067ce7e9aab99",
+      "bodyTextPrefix": "Code Jar How to Drop a code How to Pizza Hut codes only. Default",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/how-to-mobile.png"
+    }
+  },
+  "brandWarnings": [],
+  "authWarnings": [],
+  "verdictFile": "/workspace/screenshots/how-to.json"
+}
