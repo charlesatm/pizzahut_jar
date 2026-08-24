@@ -1,12 +1,31 @@
 import { Link, useRouterState } from "@tanstack/react-router";
+import { CirclePlus, Home, Tags } from "lucide-react";
 import type { ReactNode } from "react";
 import { HutLogo } from "@/components/hut-logo";
 import { cn } from "@/lib/utils";
 
 const NAV = [
-  { to: "/", label: "Home", hash: undefined as string | undefined },
-  { to: "/", label: "Share Code", hash: "share" },
-  { to: "/browse", label: "Browse Codes", hash: undefined },
+  {
+    to: "/",
+    label: "Home",
+    mobileLabel: "Home",
+    hash: undefined as string | undefined,
+    icon: Home,
+  },
+  {
+    to: "/",
+    label: "Share Code",
+    mobileLabel: "Share",
+    hash: "share",
+    icon: CirclePlus,
+  },
+  {
+    to: "/browse",
+    label: "Browse Codes",
+    mobileLabel: "Browse",
+    hash: undefined,
+    icon: Tags,
+  },
 ];
 
 export function AppShell({ children }: { children: ReactNode }) {
@@ -46,28 +65,11 @@ export function AppShell({ children }: { children: ReactNode }) {
 
         <div className="app-panel">
           <div className="mobile-header">
-            <Link to="/" aria-label="Pizza Hut codes home">
+            <Link to="/" aria-label="Pizza Hut codes home" className="mobile-brand">
               <HutLogo size="sm" />
+              <span>Pizza Hut Codes</span>
             </Link>
-            <nav className="mobile-nav" aria-label="Primary navigation">
-              {NAV.map((item) => {
-                const active =
-                  item.to === "/browse"
-                    ? pathname === "/browse"
-                    : pathname === "/" && (item.hash ? hash === item.hash : !hash || hash === "");
-                return (
-                  <Link
-                    key={item.label}
-                    to={item.to}
-                    hash={item.hash}
-                    aria-current={active ? "page" : undefined}
-                    className={cn("mobile-nav-link", active && "text-foreground")}
-                  >
-                    {item.label}
-                  </Link>
-                );
-              })}
-            </nav>
+            <span className="mobile-header-note">Share a slice</span>
           </div>
           <main className="app-main">{children}</main>
           <footer className="app-footer">
@@ -83,6 +85,27 @@ export function AppShell({ children }: { children: ReactNode }) {
               Privacy Policy
             </Link>
           </footer>
+          <nav className="mobile-nav" aria-label="Primary navigation">
+            {NAV.map((item) => {
+              const active =
+                item.to === "/browse"
+                  ? pathname === "/browse"
+                  : pathname === "/" && (item.hash ? hash === item.hash : !hash || hash === "");
+              const Icon = item.icon;
+              return (
+                <Link
+                  key={item.label}
+                  to={item.to}
+                  hash={item.hash}
+                  aria-current={active ? "page" : undefined}
+                  className={cn("mobile-nav-link", active && "mobile-nav-link-active")}
+                >
+                  <Icon className="mobile-nav-icon" aria-hidden="true" />
+                  <span>{item.mobileLabel}</span>
+                </Link>
+              );
+            })}
+          </nav>
         </div>
       </div>
     </div>

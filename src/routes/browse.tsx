@@ -33,19 +33,21 @@ function Browse() {
 
   return (
     <AppShell>
-      <h1 className="text-xl font-medium tracking-tight">Browse codes</h1>
-      <p className="mt-1 text-sm text-muted-foreground">
-        Soonest expiry first. Tap a card to copy.
-      </p>
-      {codes.length === 0 ? (
-        <p className="mt-8 text-sm text-muted-foreground">No open codes.</p>
-      ) : (
-        <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {codes.map((code) => (
-            <CodeCard key={code.id} code={code} />
-          ))}
-        </div>
-      )}
+      <div className="content-page">
+        <h1 className="text-xl font-medium tracking-tight">Browse codes</h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Soonest expiry first. Tap a card to copy.
+        </p>
+        {codes.length === 0 ? (
+          <p className="mt-8 text-sm text-muted-foreground">No unused codes right now.</p>
+        ) : (
+          <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {codes.map((code) => (
+              <CodeCard key={code.id} code={code} />
+            ))}
+          </div>
+        )}
+      </div>
     </AppShell>
   );
 }
