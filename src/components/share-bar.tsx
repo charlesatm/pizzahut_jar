@@ -37,26 +37,19 @@ export function ShareBar({ onShared }: { onShared?: () => void }) {
   }
 
   return (
-    <form
-      id="share"
-      onSubmit={(e) => void onSubmit(e)}
-      className="mx-auto flex w-full max-w-xl overflow-hidden rounded-full border border-transparent bg-white shadow-[0_0_40px_-12px_rgba(228,0,43,0.55)]"
-    >
+    <form id="share" onSubmit={(e) => void onSubmit(e)} className="share-form">
       <Input
         value={code}
         onChange={(e) => setCode(e.target.value)}
         required
         minLength={3}
         maxLength={40}
-        placeholder="Enter your Pizza Hut Promo Code here (e.g., PIZZA50OFF)"
-        className="h-12 flex-1 border-0 bg-transparent font-mono text-sm tracking-wide text-neutral-900 shadow-none placeholder:font-sans placeholder:tracking-normal placeholder:text-neutral-400 focus-visible:ring-0"
+        placeholder="Pizza Hut code (e.g., PIZZA50OFF)"
+        aria-label="Pizza Hut promo code"
+        className="share-input !rounded-none !border-0 !bg-transparent !shadow-none focus-visible:!ring-0"
       />
-      <Button
-        type="submit"
-        disabled={create.isPending}
-        className="m-1 h-10 rounded-full px-6 text-xs font-semibold tracking-widest"
-      >
-        SHARE
+      <Button type="submit" disabled={create.isPending} className="share-button">
+        {create.isPending ? "Sharing" : "Share"}
       </Button>
     </form>
   );

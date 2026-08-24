@@ -8,13 +8,7 @@ if (typeof window !== "undefined") {
   void import("@/components/pizza-scene");
 }
 
-export function PizzaHero({
-  pulse = 0,
-  className,
-}: {
-  pulse?: number;
-  className?: string;
-}) {
+export function PizzaHero({ pulse = 0, className }: { pulse?: number; className?: string }) {
   const [live, setLive] = useState(false);
   const [shown, setShown] = useState(false);
 
@@ -23,7 +17,7 @@ export function PizzaHero({
   }, []);
 
   return (
-    <div className={cn("relative min-h-[18rem] w-full", className)}>
+    <div className={cn("pizza-hero relative w-full", className)}>
       <div
         className={cn(
           "absolute inset-0 transition-opacity duration-300",

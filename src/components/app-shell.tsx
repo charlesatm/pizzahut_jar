@@ -14,76 +14,76 @@ export function AppShell({ children }: { children: ReactNode }) {
   const hash = useRouterState({ select: (s) => s.location.hash });
 
   return (
-    <div className="flex h-svh w-full bg-background">
-      <aside className="hidden h-full w-56 shrink-0 flex-col border-r border-border bg-[#101012] lg:flex">
-        <div className="flex flex-col items-center px-5 pt-8">
-          <Link to="/" aria-label="Pizza Hut codes home">
-            <HutLogo />
-          </Link>
-          <nav className="mt-10 flex flex-col gap-1">
-            {NAV.map((item) => {
-              const active =
-                item.to === "/browse"
-                  ? pathname === "/browse"
-                  : pathname === "/" &&
-                    (item.hash ? hash === item.hash : !hash || hash === "");
-              return (
-                <Link
-                  key={item.label}
-                  to={item.to}
-                  hash={item.hash}
-                  className={cn(
-                    "relative rounded-md px-3 py-2 text-sm transition-colors duration-150",
-                    active
-                      ? "text-foreground"
-                      : "text-muted-foreground hover:text-foreground",
-                  )}
-                >
-                  {active ? (
-                    <span className="absolute left-0 top-1/2 h-5 w-0.5 -translate-y-1/2 rounded-full bg-primary" />
-                  ) : null}
-                  {item.label}
-                </Link>
-              );
-            })}
-          </nav>
-        </div>
-      </aside>
+    <div className="app-canvas">
+      <div className="app-frame">
+        <aside className="app-sidebar">
+          <div className="flex flex-col items-center">
+            <Link to="/" aria-label="Pizza Hut codes home">
+              <HutLogo />
+            </Link>
+            <nav className="side-nav" aria-label="Primary navigation">
+              {NAV.map((item) => {
+                const active =
+                  item.to === "/browse"
+                    ? pathname === "/browse"
+                    : pathname === "/" && (item.hash ? hash === item.hash : !hash || hash === "");
+                return (
+                  <Link
+                    key={item.label}
+                    to={item.to}
+                    hash={item.hash}
+                    aria-current={active ? "page" : undefined}
+                    className={cn("side-nav-link", active && "side-nav-link-active")}
+                  >
+                    {active ? <span className="side-nav-indicator" aria-hidden="true" /> : null}
+                    {item.label}
+                  </Link>
+                );
+              })}
+            </nav>
+          </div>
+        </aside>
 
-      <div className="flex min-h-0 min-w-0 flex-1 flex-col">
-        <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-3 lg:hidden">
-          <Link to="/" aria-label="Pizza Hut codes home">
-            <HutLogo size="sm" />
-          </Link>
-          <nav className="flex gap-1">
-            {NAV.map((item) => (
-              <Link
-                key={item.label}
-                to={item.to}
-                hash={item.hash}
-                className="px-2 py-1 text-xs text-muted-foreground hover:text-foreground"
-              >
-                {item.label}
-              </Link>
-            ))}
-          </nav>
+        <div className="app-panel">
+          <div className="mobile-header">
+            <Link to="/" aria-label="Pizza Hut codes home">
+              <HutLogo size="sm" />
+            </Link>
+            <nav className="mobile-nav" aria-label="Primary navigation">
+              {NAV.map((item) => {
+                const active =
+                  item.to === "/browse"
+                    ? pathname === "/browse"
+                    : pathname === "/" && (item.hash ? hash === item.hash : !hash || hash === "");
+                return (
+                  <Link
+                    key={item.label}
+                    to={item.to}
+                    hash={item.hash}
+                    aria-current={active ? "page" : undefined}
+                    className={cn("mobile-nav-link", active && "text-foreground")}
+                  >
+                    {item.label}
+                  </Link>
+                );
+              })}
+            </nav>
+          </div>
+          <main className="app-main">{children}</main>
+          <footer className="app-footer">
+            <Link to="/how-to" className="hover:text-foreground">
+              How to
+            </Link>
+            <span className="mx-2">·</span>
+            <Link to="/terms" className="hover:text-foreground">
+              Terms of Service
+            </Link>
+            <span className="mx-2">·</span>
+            <Link to="/privacy" className="hover:text-foreground">
+              Privacy Policy
+            </Link>
+          </footer>
         </div>
-        <main className="flex min-h-0 flex-1 flex-col overflow-y-auto px-4 py-6 sm:px-8 sm:py-8">
-          {children}
-        </main>
-        <footer className="shrink-0 border-t border-border px-4 py-3 text-center text-xs text-muted-foreground sm:px-8">
-          <Link to="/how-to" className="hover:text-foreground">
-            How to
-          </Link>
-          <span className="mx-2">·</span>
-          <Link to="/terms" className="hover:text-foreground">
-            Terms of Service
-          </Link>
-          <span className="mx-2">·</span>
-          <Link to="/privacy" className="hover:text-foreground">
-            Privacy Policy
-          </Link>
-        </footer>
       </div>
     </div>
   );

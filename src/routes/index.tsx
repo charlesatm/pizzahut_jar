@@ -36,22 +36,19 @@ function Home() {
 
   return (
     <AppShell>
-      <div className="flex min-h-0 flex-1 flex-col">
-        <PizzaHero pulse={pulse} className="min-h-[42vh] flex-1" />
-        <div className="shrink-0">
+      <div className="home-layout">
+        <h1 className="sr-only">Share Pizza Hut promo codes</h1>
+        <PizzaHero pulse={pulse} className="home-pizza" />
+        <div className="share-wrap">
           <ShareBar onShared={() => setPulse((n) => n + 1)} />
         </div>
 
-        <section className="mt-8 shrink-0">
-          <h2 className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
-            Recently shared codes
-          </h2>
+        <section className="recent-section">
+          <h2 className="section-label">Recently shared codes</h2>
           {recent.length === 0 ? (
-            <p className="mt-4 text-sm text-muted-foreground">
-              None yet. Share the first one.
-            </p>
+            <p className="empty-copy">None yet. Share the first one.</p>
           ) : (
-            <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+            <div className="recent-grid">
               {recent.map((code) => (
                 <CodeCard key={code.id} code={code} />
               ))}

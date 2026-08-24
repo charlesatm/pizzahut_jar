@@ -2,12 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { format, isValid, parseISO } from "date-fns";
 import { useState } from "react";
 import { toast } from "sonner";
-import {
-  grabCode,
-  markInvalid,
-  markUsed,
-  type PromoCode,
-} from "@/lib/codes";
+import { grabCode, markInvalid, markUsed, type PromoCode } from "@/lib/codes";
 import { copyText } from "@/lib/utils";
 
 function formatDay(value: string | null) {
@@ -52,40 +47,40 @@ export function CodeCard({ code }: { code: PromoCode }) {
   }
 
   return (
-    <article className="rounded-lg bg-white p-4 text-neutral-900 shadow-sm">
+    <article className="code-list-card">
       <button
         type="button"
         onClick={() => void handleCopy()}
         className="w-full text-left"
         aria-label={`Copy ${code.code}`}
       >
-        <p className="font-mono text-sm font-semibold tracking-wide">
+        <p className="font-mono text-sm font-semibold tracking-wide text-card-foreground">
           {copied ? "COPIED" : code.code}
         </p>
-        <p className="mt-1 text-xs text-neutral-500">{code.discount}</p>
-        <p className="mt-0.5 text-xs text-neutral-400">
+        <p className="mt-1 text-xs text-card-foreground/65">{code.discount}</p>
+        <p className="mt-1 text-xs text-card-foreground/45">
           {code.expires_at ? `Expires ${formatDay(code.expires_at)}` : "Shared"}
         </p>
       </button>
       {code.status === "open" ? (
-        <div className="mt-3 flex gap-3 text-xs text-neutral-500">
+        <div className="mt-4 flex gap-4 text-xs text-card-foreground/55">
           <button
             type="button"
-            className="hover:text-neutral-900"
+            className="min-h-11 transition-colors hover:text-card-foreground"
             onClick={() => used.mutate()}
           >
             Used
           </button>
           <button
             type="button"
-            className="hover:text-neutral-900"
+            className="min-h-11 transition-colors hover:text-card-foreground"
             onClick={() => invalid.mutate()}
           >
             No good
           </button>
         </div>
       ) : (
-        <p className="mt-3 text-xs text-neutral-400">
+        <p className="mt-3 text-xs text-card-foreground/45">
           {code.status === "claimed" ? "Used" : "No good"}
         </p>
       )}
