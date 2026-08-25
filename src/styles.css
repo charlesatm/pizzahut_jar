@@ -122,10 +122,18 @@
     padding: 2.5rem 1.5rem;
   }
 
-  .brand-mark {
-    border-radius: var(--radius-md);
-    outline: 1px solid rgba(255, 255, 255, 0.08);
-    outline-offset: -1px;
+  .hut-wordmark {
+    display: block;
+    height: auto;
+    object-fit: contain;
+  }
+
+  .hut-wordmark-sm {
+    width: 3.375rem;
+  }
+
+  .hut-wordmark-md {
+    width: 6.5rem;
   }
 
   .side-nav {
@@ -190,11 +198,7 @@
     display: inline-flex;
     min-height: 2.75rem;
     align-items: center;
-    gap: 0.7rem;
     color: var(--color-foreground);
-    font-size: 0.82rem;
-    font-weight: 600;
-    letter-spacing: 0.01em;
   }
 
   .mobile-header-note {

@@ -67,9 +67,8 @@ export function AppShell({ children }: { children: ReactNode }) {
           <div className="mobile-header">
             <Link to="/" aria-label="Pizza Hut codes home" className="mobile-brand">
               <HutLogo size="sm" />
-              <span>Pizza Hut Codes</span>
             </Link>
-            <span className="mobile-header-note">Share a slice</span>
+            <span className="mobile-header-note">Promo code jar</span>
           </div>
           <main className="app-main">{children}</main>
           <footer className="app-footer">
