@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title">
+  <title id="title">SliceShare</title>
+  <rect width="64" height="64" rx="15" fill="#151619"/>
+  <path d="M11 50 23 12Q43 17 54 32Z" fill="#F2D166"/>
+  <path d="M23 12Q43 17 54 32" fill="none" stroke="#E4002B" stroke-width="8" stroke-linecap="round"/>
+  <path d="m11 50 43-18" fill="none" stroke="#D8893F" stroke-width="5" stroke-linecap="round"/>
+  <circle cx="30" cy="27" r="4" fill="#A92F2A"/>
+  <circle cx="23" cy="40" r="4" fill="#A92F2A"/>
+  <circle cx="39" cy="38" r="4" fill="#A92F2A"/>
+</svg>

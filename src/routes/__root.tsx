@@ -6,7 +6,7 @@ import { PreviewHostBridge } from "@/components/preview-host-bridge";
 import { AuthProvider } from "@/lib/auth/provider";
 import appCss from "../styles.css?url";
 
-const APP_NAME = "Pizza Hut Codes";
+const APP_NAME = "SliceShare · Pizza Promo Codes";
 
 function makeQueryClient() {
   return new QueryClient({
@@ -27,12 +27,12 @@ export const Route = createRootRoute({
       { title: APP_NAME },
       {
         name: "description",
-        content: "Share leftover Pizza Hut promo codes. Grab one you will use.",
+        content: "Share leftover pizza promo codes. Grab one you will use.",
       },
       { name: "theme-color", content: "#141416" },
     ],
     links: [
-      { rel: "icon", type: "image/svg+xml", href: "/pizza-hut-icon.svg" },
+      { rel: "icon", type: "image/svg+xml", href: "/sliceshare-icon.svg" },
       { rel: "stylesheet", href: appCss },
       { rel: "manifest", href: "/__grok/manifest.webmanifest" },
       { rel: "apple-touch-icon", href: "/__grok/icon-180.png" },

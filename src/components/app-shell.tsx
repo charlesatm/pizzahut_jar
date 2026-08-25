@@ -1,7 +1,7 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { CirclePlus, Home, Tags } from "lucide-react";
 import type { ReactNode } from "react";
-import { HutLogo } from "@/components/hut-logo";
+import { SiteLogo } from "@/components/site-logo";
 import { cn } from "@/lib/utils";
 
 const NAV = [
@@ -37,8 +37,8 @@ export function AppShell({ children }: { children: ReactNode }) {
       <div className="app-frame">
         <aside className="app-sidebar">
           <div className="flex flex-col items-center">
-            <Link to="/" aria-label="Pizza Hut codes home">
-              <HutLogo />
+            <Link to="/" aria-label="SliceShare home">
+              <SiteLogo />
             </Link>
             <nav className="side-nav" aria-label="Primary navigation">
               {NAV.map((item) => {
@@ -65,10 +65,10 @@ export function AppShell({ children }: { children: ReactNode }) {
 
         <div className="app-panel">
           <div className="mobile-header">
-            <Link to="/" aria-label="Pizza Hut codes home" className="mobile-brand">
-              <HutLogo size="sm" />
+            <Link to="/" aria-label="SliceShare home" className="mobile-brand">
+              <SiteLogo size="sm" />
             </Link>
-            <span className="mobile-header-note">Promo code jar</span>
+            <span className="mobile-header-note">Unofficial code jar</span>
           </div>
           <main className="app-main">{children}</main>
           <footer className="app-footer">
