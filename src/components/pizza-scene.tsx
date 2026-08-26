@@ -189,13 +189,7 @@ function PizzaMesh({ pulse }: { pulse: number }) {
   );
 }
 
-export default function PizzaScene({
-  pulse = 0,
-  onReady,
-}: {
-  pulse?: number;
-  onReady?: () => void;
-}) {
+export default function PizzaScene({ pulse = 0 }: { pulse?: number }) {
   return (
     <Canvas
       camera={{ position: [0, 3.55, 5.35], fov: 34 }}
@@ -203,7 +197,6 @@ export default function PizzaScene({
       shadows
       gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}
       className="absolute inset-0 h-full w-full"
-      onCreated={() => onReady?.()}
     >
       <CameraRig />
       <ambientLight intensity={0.52} color="#fff1df" />
