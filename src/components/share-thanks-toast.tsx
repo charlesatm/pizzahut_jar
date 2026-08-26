@@ -6,16 +6,16 @@ type ThanksMoment = "shared" | "used" | "invalid";
 
 const COPY: Record<ThanksMoment, { title: string; message: string }> = {
   shared: {
-    title: "You lovely human.",
-    message: "Thanks for passing a slice forward. Someone's dinner just got happier.",
+    title: "Ado, machan!",
+    message: "Patta move — thanks for sharing the love. Someone's pizza scene is sorted.",
   },
   used: {
-    title: "Good catch.",
-    message: "Thanks for keeping the jar tidy. You just saved someone a wasted click.",
+    title: "Hari, machan.",
+    message: "Thanks for the heads-up. You saved the next person a useless click.",
   },
   invalid: {
-    title: "Sharp eyes.",
-    message: "Thanks for flagging that dud. The jar is better for it.",
+    title: "Aney, good save.",
+    message: "Thanks for spotting that boru code, machan. One less dud in the jar.",
   },
 };
 
