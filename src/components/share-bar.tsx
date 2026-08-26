@@ -1,11 +1,9 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState, type FormEvent } from "react";
 import { toast } from "sonner";
-import { showThanks } from "@/components/share-thanks-toast";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { createCode } from "@/lib/codes";
 import { defaultExpiresAt, todayIso } from "@/lib/expiry";
+import { showThanks } from "@/lib/show-thanks";
 
 export function ShareBar({ onShared }: { onShared?: () => void }) {
   const [code, setCode] = useState("");
@@ -45,7 +43,7 @@ export function ShareBar({ onShared }: { onShared?: () => void }) {
         <label htmlFor="share-code" className="share-label">
           Promo code
         </label>
-        <Input
+        <input
           id="share-code"
           value={code}
           onChange={(e) => setCode(e.target.value)}
@@ -54,26 +52,26 @@ export function ShareBar({ onShared }: { onShared?: () => void }) {
           maxLength={40}
           placeholder="PIZZA50OFF"
           autoComplete="off"
-          className="share-input !rounded-none !border-0 !bg-transparent !text-card-foreground !shadow-none focus-visible:!ring-0"
+          className="share-input"
         />
       </div>
       <div className="share-control share-date-control">
         <label htmlFor="share-expiry" className="share-label">
           Expires
         </label>
-        <Input
+        <input
           id="share-expiry"
           type="date"
           required
           min={todayIso()}
           value={expiresAt}
           onChange={(e) => setExpiresAt(e.target.value)}
-          className="share-input share-date-input !rounded-none !border-0 !bg-transparent !text-card-foreground !shadow-none focus-visible:!ring-0"
+          className="share-input share-date-input"
         />
       </div>
-      <Button type="submit" disabled={create.isPending} className="share-button">
+      <button type="submit" disabled={create.isPending} className="share-button">
         {create.isPending ? "Sharing" : "Share"}
-      </Button>
+      </button>
     </form>
   );
 }

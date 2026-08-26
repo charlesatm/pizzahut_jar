@@ -19,6 +19,10 @@ import { renderInstallPage } from "./grok-pwa-plugin.mjs";
 
 const TEMPLATE_ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 
+// Default-context tests must not inherit this app's real share-card assets.
+// Node runs each test file in its own process, so this stays local to this suite.
+process.chdir(mkdtempSync(join(tmpdir(), "grok-pwa-tests-")));
+
 test("injects before </head>", () => {
   const out = injectGrokPwaHead("<html><head><title>x</title></head><body></body></html>");
   assert.match(out, /rel="manifest"/);
@@ -409,4 +413,3 @@ test("vite plugin bakes og identity as a virtual module", () => {
   assert.match(plugin, /virtual:grok-og-identity/);
   assert.match(plugin, /snapshotOgIdentity/);
 });
-

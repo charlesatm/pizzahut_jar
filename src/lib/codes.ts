@@ -3,10 +3,10 @@ import { z } from "zod";
 import { getSql } from "@/lib/db";
 import { defaultExpiresAt, todayIso } from "@/lib/expiry";
 
-export const PIZZA_HUT = "Pizza Hut";
+const PIZZA_HUT = "Pizza Hut";
 
-export type CodeStatus = "open" | "claimed" | "invalid" | "expired";
-export type CodeKind = "one_time" | "reusable";
+type CodeStatus = "open" | "claimed" | "invalid" | "expired";
+type CodeKind = "one_time" | "reusable";
 
 export type PromoCode = {
   id: number;
@@ -21,12 +21,6 @@ export type PromoCode = {
   grabs: number;
   thanks: number;
   created_at: string;
-};
-
-export type JarStats = {
-  open_count: number;
-  grab_count: number;
-  thanks_count: number;
 };
 
 const STATUS_SQL = `case
@@ -74,22 +68,6 @@ export const listCodes = createServerFn({ method: "GET" })
     );
     return rows;
   });
-
-export const getStats = createServerFn({ method: "GET" }).handler(async (): Promise<JarStats> => {
-  const sql = await getSql();
-  const rows = await sql.query<JarStats>(
-    `select
-         count(*) filter (
-           where status = 'open'
-             and (expires_at is null or expires_at >= current_date)
-         )::int as open_count,
-         coalesce(sum(grabs), 0)::int as grab_count,
-         coalesce(sum(thanks), 0)::int as thanks_count
-       from promo_codes
-       where ${HUT}`,
-  );
-  return rows[0] ?? { open_count: 0, grab_count: 0, thanks_count: 0 };
-});
 
 const createInput = z.object({
   code: z.string().trim().min(3).max(40),
@@ -141,19 +119,6 @@ export const grabCode = createServerFn({ method: "POST" })
       [data.id],
     );
     return rows[0] ?? { grabs: 0 };
-  });
-
-export const thankCode = createServerFn({ method: "POST" })
-  .validator(idInput)
-  .handler(async ({ data }): Promise<{ thanks: number }> => {
-    const sql = await getSql();
-    const rows = await sql.query<{ thanks: number }>(
-      `update promo_codes set thanks = thanks + 1
-       where id = $1 and ${HUT}
-       returning thanks`,
-      [data.id],
-    );
-    return rows[0] ?? { thanks: 0 };
   });
 
 export const markUsed = createServerFn({ method: "POST" })

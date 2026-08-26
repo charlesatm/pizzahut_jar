@@ -2,7 +2,7 @@ import { X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
-type ThanksMoment = "shared" | "used" | "invalid";
+export type ThanksMoment = "shared" | "used" | "invalid";
 
 const COPY: Record<ThanksMoment, { title: string; message: string }> = {
   shared: {
@@ -19,7 +19,13 @@ const COPY: Record<ThanksMoment, { title: string; message: string }> = {
   },
 };
 
-function ShareThanksToast({ moment, toastId }: { moment: ThanksMoment; toastId: number | string }) {
+export function ShareThanksToast({
+  moment,
+  toastId,
+}: {
+  moment: ThanksMoment;
+  toastId: number | string;
+}) {
   const [reduceMotion, setReduceMotion] = useState(false);
   const copy = COPY[moment];
 
@@ -55,13 +61,4 @@ function ShareThanksToast({ moment, toastId }: { moment: ThanksMoment; toastId: 
       </button>
     </div>
   );
-}
-
-export function showThanks(moment: ThanksMoment) {
-  toast.custom((toastId) => <ShareThanksToast moment={moment} toastId={toastId} />, {
-    id: "share-thanks",
-    duration: 5_200,
-    position: "top-center",
-    unstyled: true,
-  });
 }

@@ -2,8 +2,8 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { format, isValid, parseISO } from "date-fns";
 import { useState } from "react";
 import { toast } from "sonner";
-import { showThanks } from "@/components/share-thanks-toast";
 import { grabCode, markInvalid, markUsed, type PromoCode } from "@/lib/codes";
+import { showThanks } from "@/lib/show-thanks";
 import { cn, copyText } from "@/lib/utils";
 
 function formatDay(value: string | null) {
