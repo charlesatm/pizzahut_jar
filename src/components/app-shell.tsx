@@ -37,7 +37,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       <div className="app-frame">
         <aside className="app-sidebar">
           <div className="flex flex-col items-center">
-            <Link to="/" aria-label="SliceShare home">
+            <Link to="/" aria-label="Share a Slice home">
               <SiteLogo />
             </Link>
             <nav className="side-nav" aria-label="Primary navigation">
@@ -65,10 +65,10 @@ export function AppShell({ children }: { children: ReactNode }) {
 
         <div className="app-panel">
           <div className="mobile-header">
-            <Link to="/" aria-label="SliceShare home" className="mobile-brand">
+            <Link to="/" aria-label="Share a Slice home" className="mobile-brand">
               <SiteLogo size="sm" />
             </Link>
-            <span className="mobile-header-note">Unofficial code jar</span>
+            <span className="mobile-header-note">shareaslice.lk</span>
           </div>
           <main className="app-main">{children}</main>
           <footer className="app-footer">

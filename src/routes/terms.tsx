@@ -3,7 +3,7 @@ import { AppShell } from "@/components/app-shell";
 
 export const Route = createFileRoute("/terms")({
   component: TermsPage,
-  head: () => ({ meta: [{ title: "Terms · Pizza Hut codes" }] }),
+  head: () => ({ meta: [{ title: "Terms · Share a Slice" }] }),
 });
 
 function TermsPage() {

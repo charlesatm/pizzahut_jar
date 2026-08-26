@@ -1,4 +1,9 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <rect width="32" height="32" rx="8" fill="#141416"/>
-  <path fill="#E4002B" d="M6 24 L16 6 L26 24 Z"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="Share a Slice">
+  <rect width="32" height="32" rx="8" fill="#151619"/>
+  <path d="M6 25 12 7q10 2 15 10Z" fill="#F2D166"/>
+  <path d="M12 7q10 2 15 10" fill="none" stroke="#E4002B" stroke-width="4" stroke-linecap="round"/>
+  <path d="m6 25 21-8" fill="none" stroke="#D8893F" stroke-width="2.5" stroke-linecap="round"/>
+  <circle cx="15" cy="14" r="2" fill="#A92F2A"/>
+  <circle cx="12" cy="20" r="2" fill="#A92F2A"/>
+  <circle cx="20" cy="19" r="2" fill="#A92F2A"/>
 </svg>

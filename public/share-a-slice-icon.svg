@@ -1,5 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title">
-  <title id="title">SliceShare</title>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title desc">
+  <title id="title">Share a Slice</title>
+  <desc id="desc">An original pizza slice with a small sharing arrow</desc>
   <rect width="64" height="64" rx="15" fill="#151619"/>
   <path d="M11 50 23 12Q43 17 54 32Z" fill="#F2D166"/>
   <path d="M23 12Q43 17 54 32" fill="none" stroke="#E4002B" stroke-width="8" stroke-linecap="round"/>
@@ -7,4 +8,6 @@
   <circle cx="30" cy="27" r="4" fill="#A92F2A"/>
   <circle cx="23" cy="40" r="4" fill="#A92F2A"/>
   <circle cx="39" cy="38" r="4" fill="#A92F2A"/>
+  <path d="M11 21a15 15 0 0 0-3 7" fill="none" stroke="#F5F4F1" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="m6 24 2 5 5-2" fill="none" stroke="#F5F4F1" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>

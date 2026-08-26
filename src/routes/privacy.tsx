@@ -3,7 +3,7 @@ import { AppShell } from "@/components/app-shell";
 
 export const Route = createFileRoute("/privacy")({
   component: PrivacyPage,
-  head: () => ({ meta: [{ title: "Privacy · Pizza Hut codes" }] }),
+  head: () => ({ meta: [{ title: "Privacy · Share a Slice" }] }),
 });
 
 function PrivacyPage() {

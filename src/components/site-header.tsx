@@ -9,9 +9,9 @@ export function SiteHeader() {
         <Link
           to="/"
           className="text-sm font-medium tracking-tight text-foreground"
-          aria-label="Code Jar home"
+          aria-label="Share a Slice home"
         >
-          Code Jar
+          Share a Slice
         </Link>
         <div className="flex items-center gap-1">
           <Link

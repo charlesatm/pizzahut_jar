@@ -4,7 +4,7 @@ import { AppShell } from "@/components/app-shell";
 export const Route = createFileRoute("/how-to")({
   component: HowToPage,
   head: () => ({
-    meta: [{ title: "How to · Pizza Hut codes" }],
+    meta: [{ title: "How to · Share a Slice" }],
   }),
 });
 

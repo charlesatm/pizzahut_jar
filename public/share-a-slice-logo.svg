@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 96" role="img" aria-labelledby="title desc">
+  <title id="title">Share a Slice</title>
+  <desc id="desc">An original pizza slice symbol beside the Share a Slice wordmark</desc>
+  <g aria-hidden="true">
+    <circle cx="44" cy="48" r="35" fill="#24262A" stroke="#34363B" stroke-width="2"/>
+    <path d="M18 70 34 22Q57 27 71 47Z" fill="#F2D166"/>
+    <path d="M34 22Q57 27 71 47" fill="none" stroke="#E4002B" stroke-width="9" stroke-linecap="round"/>
+    <path d="m18 70 53-23" fill="none" stroke="#D8893F" stroke-width="5" stroke-linecap="round"/>
+    <circle cx="42" cy="40" r="4.5" fill="#A92F2A"/>
+    <circle cx="32" cy="55" r="4.5" fill="#A92F2A"/>
+    <circle cx="53" cy="52" r="4.5" fill="#A92F2A"/>
+    <path d="M21 29a30 30 0 0 0-5 12" fill="none" stroke="#F5F4F1" stroke-width="2.5" stroke-linecap="round"/>
+    <path d="m13 37 3 5 5-3" fill="none" stroke="#F5F4F1" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <text x="91" y="43" fill="#F5F4F1" font-family="Avenir Next, Helvetica Neue, Arial, sans-serif" font-size="25" font-weight="700" letter-spacing="1.4">SHARE A</text>
+  <text x="91" y="73" fill="#E4002B" font-family="Avenir Next, Helvetica Neue, Arial, sans-serif" font-size="29" font-weight="700" letter-spacing="3">SLICE</text>
+</svg>
