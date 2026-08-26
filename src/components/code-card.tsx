@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { format, isValid, parseISO } from "date-fns";
 import { useState } from "react";
 import { toast } from "sonner";
+import { showThanks } from "@/components/share-thanks-toast";
 import { grabCode, markInvalid, markUsed, type PromoCode } from "@/lib/codes";
 import { cn, copyText } from "@/lib/utils";
 
@@ -38,7 +39,7 @@ export function CodeCard({ code }: { code: PromoCode }) {
   const used = useMutation({
     mutationFn: () => markUsed({ data: { id: code.id } }),
     onMutate: () => patch({ status: "claimed" }),
-    onSuccess: () => toast.success("Marked as used."),
+    onSuccess: () => showThanks("used"),
     onError: (error) =>
       toast.error(error instanceof Error ? error.message : "Could not update that code."),
     onSettled: () => void queryClient.invalidateQueries({ queryKey: ["codes"] }),
@@ -46,7 +47,7 @@ export function CodeCard({ code }: { code: PromoCode }) {
   const invalid = useMutation({
     mutationFn: () => markInvalid({ data: { id: code.id } }),
     onMutate: () => patch({ status: "invalid" }),
-    onSuccess: () => toast.success("Marked as not good."),
+    onSuccess: () => showThanks("invalid"),
     onError: (error) =>
       toast.error(error instanceof Error ? error.message : "Could not update that code."),
     onSettled: () => void queryClient.invalidateQueries({ queryKey: ["codes"] }),

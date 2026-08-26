@@ -2,8 +2,26 @@ import { X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
-function ShareThanksToast({ toastId }: { toastId: number | string }) {
+type ThanksMoment = "shared" | "used" | "invalid";
+
+const COPY: Record<ThanksMoment, { title: string; message: string }> = {
+  shared: {
+    title: "You lovely human.",
+    message: "Thanks for passing a slice forward. Someone's dinner just got happier.",
+  },
+  used: {
+    title: "Good catch.",
+    message: "Thanks for keeping the jar tidy. You just saved someone a wasted click.",
+  },
+  invalid: {
+    title: "Sharp eyes.",
+    message: "Thanks for flagging that dud. The jar is better for it.",
+  },
+};
+
+function ShareThanksToast({ moment, toastId }: { moment: ThanksMoment; toastId: number | string }) {
   const [reduceMotion, setReduceMotion] = useState(false);
+  const copy = COPY[moment];
 
   useEffect(() => {
     const preference = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -24,8 +42,8 @@ function ShareThanksToast({ toastId }: { toastId: number | string }) {
         />
       </div>
       <div className="share-thanks-copy">
-        <p className="share-thanks-title">You lovely human.</p>
-        <p>Thanks for passing a slice forward. Someone&apos;s dinner just got happier.</p>
+        <p className="share-thanks-title">{copy.title}</p>
+        <p>{copy.message}</p>
       </div>
       <button
         type="button"
@@ -39,8 +57,8 @@ function ShareThanksToast({ toastId }: { toastId: number | string }) {
   );
 }
 
-export function showShareThanks() {
-  toast.custom((toastId) => <ShareThanksToast toastId={toastId} />, {
+export function showThanks(moment: ThanksMoment) {
+  toast.custom((toastId) => <ShareThanksToast moment={moment} toastId={toastId} />, {
     id: "share-thanks",
     duration: 5_200,
     position: "top-center",

@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState, type FormEvent } from "react";
 import { toast } from "sonner";
-import { showShareThanks } from "@/components/share-thanks-toast";
+import { showThanks } from "@/components/share-thanks-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { createCode } from "@/lib/codes";
@@ -32,7 +32,7 @@ export function ShareBar({ onShared }: { onShared?: () => void }) {
       await create.mutateAsync();
       setCode("");
       setExpiresAt(defaultExpiresAt());
-      showShareThanks();
+      showThanks("shared");
       onShared?.();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Could not share that.");

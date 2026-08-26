@@ -2,14 +2,9 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { format, isValid, parseISO } from "date-fns";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
+import { showThanks } from "@/components/share-thanks-toast";
 import { Button } from "@/components/ui/button";
-import {
-  grabCode,
-  markInvalid,
-  markUsed,
-  thankCode,
-  type PromoCode,
-} from "@/lib/codes";
+import { grabCode, markInvalid, markUsed, thankCode, type PromoCode } from "@/lib/codes";
 import { useThanksStore } from "@/lib/thanks-store";
 import { cn, copyText } from "@/lib/utils";
 
@@ -42,7 +37,7 @@ export function CodeTicket({ code }: { code: PromoCode }) {
   const used = useMutation({
     mutationFn: () => markUsed({ data: { id: code.id } }),
     onMutate: () => patch({ status: "claimed" }),
-    onSuccess: () => toast.success("Marked used."),
+    onSuccess: () => showThanks("used"),
     onError: (err: Error) => {
       toast.error(err.message || "Could not mark that used.");
       void queryClient.invalidateQueries({ queryKey: ["codes"] });
@@ -51,7 +46,7 @@ export function CodeTicket({ code }: { code: PromoCode }) {
   const invalid = useMutation({
     mutationFn: () => markInvalid({ data: { id: code.id } }),
     onMutate: () => patch({ status: "invalid" }),
-    onSuccess: () => toast.message("Marked no good."),
+    onSuccess: () => showThanks("invalid"),
     onError: (err: Error) => {
       toast.error(err.message || "Could not mark that no good.");
       void queryClient.invalidateQueries({ queryKey: ["codes"] });
@@ -104,15 +99,10 @@ export function CodeTicket({ code }: { code: PromoCode }) {
         className="w-full text-left"
         aria-label={`Copy code ${code.code}`}
       >
-        <p
-          ref={codeRef}
-          className="font-mono text-xl font-medium tracking-[0.14em]"
-        >
+        <p ref={codeRef} className="font-mono text-xl font-medium tracking-[0.14em]">
           {code.code}
         </p>
-        <p className="mt-1 text-sm text-muted-foreground">
-          {copied ? "Copied" : code.discount}
-        </p>
+        <p className="mt-1 text-sm text-muted-foreground">{copied ? "Copied" : code.discount}</p>
       </button>
 
       <p className="mt-4 text-sm text-muted-foreground">
@@ -121,12 +111,7 @@ export function CodeTicket({ code }: { code: PromoCode }) {
 
       {code.status === "open" ? (
         <div className="mt-6 grid grid-cols-2 gap-2">
-          <Button
-            type="button"
-            size="sm"
-            onClick={() => void handleCopy()}
-            className="min-h-11"
-          >
+          <Button type="button" size="sm" onClick={() => void handleCopy()} className="min-h-11">
             {copied ? "Copied" : "Copy"}
           </Button>
           <Button
