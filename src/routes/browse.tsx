@@ -41,7 +41,7 @@ function Browse() {
         {codes.length === 0 ? (
           <p className="mt-8 text-sm text-muted-foreground">No unused codes right now.</p>
         ) : (
-          <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="codes-grid mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {codes.map((code) => (
               <CodeCard key={code.id} code={code} />
             ))}

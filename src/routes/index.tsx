@@ -48,7 +48,7 @@ function Home() {
           {recent.length === 0 ? (
             <p className="empty-copy">None yet. Share the first one.</p>
           ) : (
-            <div className="recent-grid">
+            <div className="recent-grid codes-grid">
               {recent.map((code) => (
                 <CodeCard key={code.id} code={code} />
               ))}
