@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState, type FormEvent } from "react";
 import { toast } from "sonner";
+import { createOwnerToken, saveOwnerToken } from "@/lib/code-ownership";
 import { createCode } from "@/lib/codes";
 import { defaultExpiresAt, todayIso } from "@/lib/expiry";
 import { showThanks } from "@/lib/show-thanks";
@@ -11,15 +12,19 @@ export function ShareBar({ onShared }: { onShared?: () => void }) {
   const queryClient = useQueryClient();
 
   const create = useMutation({
-    mutationFn: () =>
+    mutationFn: (ownerToken: string) =>
       createCode({
         data: {
           code,
           discount: "15% off",
           expires_at: expiresAt,
+          owner_token: ownerToken,
         },
       }),
-    onSuccess: () => {
+    onSuccess: (created, ownerToken) => {
+      if (!saveOwnerToken(created.id, ownerToken)) {
+        toast.warning("Shared, but this browser blocked edit and delete access.");
+      }
       void queryClient.invalidateQueries({ queryKey: ["codes"] });
     },
   });
@@ -27,7 +32,7 @@ export function ShareBar({ onShared }: { onShared?: () => void }) {
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     try {
-      await create.mutateAsync();
+      await create.mutateAsync(createOwnerToken());
       setCode("");
       setExpiresAt(defaultExpiresAt());
       showThanks("shared");

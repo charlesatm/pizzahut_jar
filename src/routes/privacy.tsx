@@ -12,8 +12,9 @@ function PrivacyPage() {
       <div className="content-page">
         <h1 className="text-xl font-medium tracking-tight">Privacy Policy</h1>
         <p className="mt-4 max-w-lg text-sm leading-relaxed text-muted-foreground">
-          No accounts. Promo codes you share are public. Do not include personal information in a
-          code or note.
+          No accounts. Promo codes you share are public. A private management key is stored only in
+          your browser so you can edit or delete your own codes. Do not include personal information
+          in a code or note.
         </p>
       </div>
     </AppShell>

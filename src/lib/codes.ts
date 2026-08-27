@@ -4,6 +4,7 @@ import { getSql } from "@/lib/db";
 import { defaultExpiresAt, todayIso } from "@/lib/expiry";
 
 const PIZZA_HUT = "Pizza Hut";
+const OWNER_TOKEN_PATTERN = /^[a-f0-9]{64}$/;
 
 type CodeStatus = "open" | "claimed" | "invalid" | "expired";
 type CodeKind = "one_time" | "reusable";
@@ -72,6 +73,7 @@ export const listCodes = createServerFn({ method: "GET" })
 const createInput = z.object({
   code: z.string().trim().min(3).max(40),
   discount: z.string().trim().min(2).max(40).default("15% off"),
+  owner_token: z.string().regex(OWNER_TOKEN_PATTERN, "Invalid management key"),
   expires_at: z
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/, "Expiry date is required")
@@ -80,12 +82,18 @@ const createInput = z.object({
     .refine((value) => value >= todayIso(), "Expiry date cannot be in the past"),
 });
 
+async function hashOwnerToken(token: string) {
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(token));
+  return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
+}
+
 export const createCode = createServerFn({ method: "POST" })
   .validator(createInput)
   .handler(async ({ data }): Promise<PromoCode> => {
     const sql = await getSql();
     const code = data.code.replace(/\s+/g, "").toUpperCase();
     const discount = data.discount.trim() || "15% off";
+    const ownerTokenHash = await hashOwnerToken(data.owner_token);
     const existing = await sql.query<{ id: number }>(
       `select id from promo_codes where code = $1 limit 1`,
       [code],
@@ -94,12 +102,14 @@ export const createCode = createServerFn({ method: "POST" })
       throw new Error("That code is already in the jar.");
     }
     const rows = await sql.query<PromoCode>(
-      `insert into promo_codes (brand, code, discount, category, note, kind, expires_at)
-       values ($1, $2, $3, 'food', '', 'one_time', $4)
+      `insert into promo_codes (
+         brand, code, discount, category, note, kind, expires_at, owner_token_hash
+       )
+       values ($1, $2, $3, 'food', '', 'one_time', $4, $5)
        returning
          id, brand, code, discount, category, note, kind,
          expires_at, status, grabs, thanks, created_at::text as created_at`,
-      [PIZZA_HUT, code, discount, data.expires_at],
+      [PIZZA_HUT, code, discount, data.expires_at, ownerTokenHash],
     );
     const row = rows[0];
     if (!row) throw new Error("Could not drop that code.");
@@ -107,6 +117,59 @@ export const createCode = createServerFn({ method: "POST" })
   });
 
 const idInput = z.object({ id: z.coerce.number().int().positive() });
+
+const manageInput = z.object({
+  id: z.coerce.number().int().positive(),
+  owner_token: z.string().regex(OWNER_TOKEN_PATTERN, "Invalid management key"),
+});
+
+const updateInput = manageInput.extend({
+  code: z.string().trim().min(3).max(40),
+  expires_at: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "Expiry date is required")
+    .refine((value) => value >= todayIso(), "Expiry date cannot be in the past"),
+});
+
+export const updateCode = createServerFn({ method: "POST" })
+  .validator(updateInput)
+  .handler(async ({ data }): Promise<PromoCode> => {
+    const sql = await getSql();
+    const code = data.code.replace(/\s+/g, "").toUpperCase();
+    const ownerTokenHash = await hashOwnerToken(data.owner_token);
+    const duplicate = await sql.query<{ id: number }>(
+      `select id from promo_codes where code = $1 and id <> $2 limit 1`,
+      [code, data.id],
+    );
+    if (duplicate.length) throw new Error("That code is already in the jar.");
+    const rows = await sql.query<PromoCode>(
+      `update promo_codes
+       set code = $1, expires_at = $2
+       where id = $3 and ${HUT} and owner_token_hash = $4
+       returning
+         id, brand, code, discount, category, note, kind,
+         expires_at, status, grabs, thanks, created_at::text as created_at`,
+      [code, data.expires_at, data.id, ownerTokenHash],
+    );
+    const row = rows[0];
+    if (!row) throw new Error("This browser cannot manage that code.");
+    return row;
+  });
+
+export const deleteCode = createServerFn({ method: "POST" })
+  .validator(manageInput)
+  .handler(async ({ data }): Promise<{ ok: true }> => {
+    const sql = await getSql();
+    const ownerTokenHash = await hashOwnerToken(data.owner_token);
+    const rows = await sql.query<{ id: number }>(
+      `delete from promo_codes
+       where id = $1 and ${HUT} and owner_token_hash = $2
+       returning id`,
+      [data.id, ownerTokenHash],
+    );
+    if (!rows.length) throw new Error("This browser cannot manage that code.");
+    return { ok: true };
+  });
 
 export const grabCode = createServerFn({ method: "POST" })
   .validator(idInput)

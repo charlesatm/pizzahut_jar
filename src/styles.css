@@ -635,6 +635,132 @@
     padding-top: 0.9rem;
   }
 
+  .code-owner-row {
+    display: flex;
+    min-height: 2.75rem;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-top: 0.65rem;
+    border-top: 1px solid color-mix(in srgb, var(--code-card-accent) 18%, transparent);
+    padding-top: 0.65rem;
+  }
+
+  .code-owner-label {
+    color: var(--code-card-accent);
+    font-size: 0.625rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .code-owner-actions,
+  .code-owner-confirm,
+  .code-owner-form-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+
+  .code-owner-actions button,
+  .code-owner-confirm button,
+  .code-owner-form-actions button {
+    display: inline-flex;
+    min-height: 2.75rem;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    border-radius: var(--radius-xs);
+    padding-inline: 0.65rem;
+    color: color-mix(in srgb, var(--code-card-fg) 72%, transparent);
+    font-size: 0.7rem;
+    font-weight: 650;
+    transition:
+      background-color var(--motion-fast) ease-out,
+      color var(--motion-fast) ease-out,
+      opacity var(--motion-fast) ease-out;
+  }
+
+  .code-owner-actions button:hover,
+  .code-owner-confirm button:hover,
+  .code-owner-form-actions button:hover {
+    background: color-mix(in srgb, var(--code-card-accent) 10%, transparent);
+    color: var(--code-card-fg);
+  }
+
+  .code-owner-actions svg {
+    width: 0.85rem;
+    height: 0.85rem;
+  }
+
+  .code-owner-confirm {
+    color: color-mix(in srgb, var(--code-card-fg) 62%, transparent);
+    font-size: 0.7rem;
+  }
+
+  .code-owner-confirm .code-owner-delete-confirm {
+    color: var(--code-invalid-accent);
+  }
+
+  .code-owner-form {
+    display: grid;
+    gap: 0.75rem;
+    margin-top: 0.75rem;
+    border-top: 1px solid color-mix(in srgb, var(--code-card-accent) 18%, transparent);
+    padding-top: 0.8rem;
+  }
+
+  .code-owner-field {
+    display: grid;
+    gap: 0.35rem;
+  }
+
+  .code-owner-field span {
+    color: color-mix(in srgb, var(--code-card-fg) 58%, transparent);
+    font-size: 0.625rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .code-owner-field input {
+    width: 100%;
+    min-height: 2.75rem;
+    border: 1px solid color-mix(in srgb, var(--code-card-accent) 24%, transparent);
+    border-radius: var(--radius-xs);
+    background: color-mix(in srgb, var(--code-card-bg) 86%, white);
+    color: var(--code-card-fg);
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    padding-inline: 0.7rem;
+  }
+
+  .code-owner-field input:focus-visible {
+    outline: 2px solid color-mix(in srgb, var(--code-card-accent) 42%, transparent);
+    outline-offset: 1px;
+  }
+
+  .code-owner-form-actions {
+    justify-content: flex-end;
+  }
+
+  .code-owner-form-actions .code-owner-save {
+    background: var(--code-card-accent);
+    color: var(--color-primary-foreground);
+  }
+
+  .code-owner-form-actions .code-owner-save:hover {
+    background: color-mix(in srgb, var(--code-card-accent) 88%, black);
+    color: var(--color-primary-foreground);
+  }
+
+  .code-owner-actions button:disabled,
+  .code-owner-confirm button:disabled,
+  .code-owner-form-actions button:disabled {
+    cursor: wait;
+    opacity: 0.48;
+  }
+
   @media (min-width: 40rem) {
     .app-main {
       padding-inline: 2rem;
