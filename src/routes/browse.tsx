@@ -36,7 +36,7 @@ function Browse() {
       <div className="content-page">
         <h1 className="text-xl font-medium tracking-tight">Browse codes</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Soonest expiry first. Tap a card to copy.
+          Loyalty and GES offers, with the soonest expiry first. Tap a card to copy.
         </p>
         {codes.length === 0 ? (
           <p className="mt-8 text-sm text-muted-foreground">No unused codes right now.</p>

@@ -37,7 +37,7 @@ function Home() {
   return (
     <AppShell>
       <div className="home-layout">
-        <h1 className="sr-only">Share Pizza Hut promo codes</h1>
+        <h1 className="sr-only">Share Pizza Hut loyalty and GES promo codes</h1>
         <PizzaHero pulse={pulse} className="home-pizza" />
         <div className="share-wrap">
           <ShareBar onShared={() => setPulse((n) => n + 1)} />

@@ -30,10 +30,12 @@ export function CodeCard({ code }: { code: PromoCode }) {
   const [editing, setEditing] = useState(false);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [draftCode, setDraftCode] = useState(code.code);
+  const [draftSurveyCode, setDraftSurveyCode] = useState(code.note);
   const [draftExpiresAt, setDraftExpiresAt] = useState(
     code.expires_at?.slice(0, 10) ?? defaultExpiresAt(),
   );
   const closed = code.status !== "open";
+  const isGes = code.offer_type === "ges";
   const state =
     code.status === "open"
       ? { theme: "unused", label: "Unused" }
@@ -74,13 +76,23 @@ export function CodeCard({ code }: { code: PromoCode }) {
     onSettled: () => void queryClient.invalidateQueries({ queryKey: ["codes"] }),
   });
   const update = useMutation({
-    mutationFn: ({ nextCode, nextExpiry }: { nextCode: string; nextExpiry: string }) => {
+    mutationFn: ({
+      nextCode,
+      nextSurveyCode,
+      nextExpiry,
+    }: {
+      nextCode: string;
+      nextSurveyCode: string;
+      nextExpiry: string;
+    }) => {
       if (!ownerToken) throw new Error("This browser cannot manage that code.");
       return updateCode({
         data: {
           id: code.id,
           owner_token: ownerToken,
           code: nextCode,
+          offer_type: code.offer_type,
+          survey_code: nextSurveyCode,
           expires_at: nextExpiry,
         },
       });
@@ -112,7 +124,10 @@ export function CodeCard({ code }: { code: PromoCode }) {
   });
 
   async function handleCopy() {
-    const ok = await copyText(code.code).catch(() => false);
+    const copyValue = isGes
+      ? `GES Survey Code: ${code.note}\nValidation Code: ${code.code}`
+      : code.code;
+    const ok = await copyText(copyValue).catch(() => false);
     if (!closed) grab.mutate();
     setCopied(true);
     window.setTimeout(() => setCopied(false), 1600);
@@ -121,6 +136,7 @@ export function CodeCard({ code }: { code: PromoCode }) {
 
   function startEditing() {
     setDraftCode(code.code);
+    setDraftSurveyCode(code.note);
     setDraftExpiresAt(code.expires_at?.slice(0, 10) ?? defaultExpiresAt());
     setConfirmingDelete(false);
     setEditing(true);
@@ -128,7 +144,11 @@ export function CodeCard({ code }: { code: PromoCode }) {
 
   function handleUpdate(event: FormEvent) {
     event.preventDefault();
-    update.mutate({ nextCode: draftCode, nextExpiry: draftExpiresAt });
+    update.mutate({
+      nextCode: draftCode,
+      nextSurveyCode: draftSurveyCode,
+      nextExpiry: draftExpiresAt,
+    });
   }
 
   const statusPending = used.isPending || invalid.isPending;
@@ -136,15 +156,31 @@ export function CodeCard({ code }: { code: PromoCode }) {
   return (
     <article className={cn("code-list-card", `code-list-card-${state.theme}`)}>
       <div className="code-card-heading">
-        <span className="code-status">{state.label}</span>
+        <div className="code-card-badges">
+          <span className="code-offer">{isGes ? "GES 20%" : "Loyalty 15%"}</span>
+          <span className="code-status">{state.label}</span>
+        </div>
         <span className="code-expiry">
           {code.expires_at ? formatDay(code.expires_at) : "No expiry"}
         </span>
       </div>
       {editing ? (
         <form className="code-owner-form" onSubmit={handleUpdate}>
+          {isGes ? (
+            <label className="code-owner-field">
+              <span>GES Survey code</span>
+              <input
+                value={draftSurveyCode}
+                onChange={(event) => setDraftSurveyCode(event.target.value)}
+                required
+                minLength={3}
+                maxLength={64}
+                autoComplete="off"
+              />
+            </label>
+          ) : null}
           <label className="code-owner-field">
-            <span>Promo code</span>
+            <span>{isGes ? "Validation code" : "Loyalty code"}</span>
             <input
               value={draftCode}
               onChange={(event) => setDraftCode(event.target.value)}
@@ -179,10 +215,19 @@ export function CodeCard({ code }: { code: PromoCode }) {
             type="button"
             onClick={() => void handleCopy()}
             className="code-card-copy"
-            aria-label={`Copy ${code.code}`}
+            aria-label={isGes ? "Copy GES Survey and validation codes" : `Copy ${code.code}`}
           >
+            {isGes ? <span className="code-card-field-label">Validation code</span> : null}
             <p className="code-card-value">{copied ? "COPIED" : code.code}</p>
-            <p className="code-card-deal">{code.discount}</p>
+            {isGes && code.note ? (
+              <span className="code-card-secondary">
+                <span className="code-card-field-label">GES Survey code</span>
+                <span className="code-card-secondary-value">{code.note}</span>
+              </span>
+            ) : null}
+            <p className="code-card-deal">
+              {isGes ? code.discount : `${code.discount} · Box Topper`}
+            </p>
           </button>
           {code.status === "open" ? (
             <div className="code-card-actions">

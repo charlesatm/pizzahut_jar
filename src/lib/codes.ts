@@ -7,7 +7,8 @@ const PIZZA_HUT = "Pizza Hut";
 const OWNER_TOKEN_PATTERN = /^[a-f0-9]{64}$/;
 
 type CodeStatus = "open" | "claimed" | "invalid" | "expired";
-type CodeKind = "one_time" | "reusable";
+type CodeKind = "one_time" | "reusable" | "loyalty" | "ges";
+export type OfferType = "loyalty" | "ges";
 
 export type PromoCode = {
   id: number;
@@ -17,6 +18,7 @@ export type PromoCode = {
   category: string;
   note: string;
   kind: CodeKind;
+  offer_type: OfferType;
   expires_at: string | null;
   status: CodeStatus;
   grabs: number;
@@ -30,6 +32,7 @@ const STATUS_SQL = `case
 end`;
 
 const HUT = `brand = 'Pizza Hut'`;
+const OFFER_TYPE_SQL = `case when kind = 'ges' then 'ges' else 'loyalty' end`;
 
 const listInput = z.object({
   view: z.enum(["open", "all"]).optional().default("open"),
@@ -60,6 +63,7 @@ export const listCodes = createServerFn({ method: "GET" })
     const rows = await sql.query<PromoCode>(
       `select
          id, brand, code, discount, category, note, kind,
+         ${OFFER_TYPE_SQL} as offer_type,
          expires_at, ${STATUS_SQL} as status,
          grabs, thanks, created_at::text as created_at
        from promo_codes
@@ -72,7 +76,8 @@ export const listCodes = createServerFn({ method: "GET" })
 
 const createInput = z.object({
   code: z.string().trim().min(3).max(40),
-  discount: z.string().trim().min(2).max(40).default("15% off"),
+  offer_type: z.enum(["loyalty", "ges"]),
+  survey_code: z.string().trim().max(64).default(""),
   owner_token: z.string().regex(OWNER_TOKEN_PATTERN, "Invalid management key"),
   expires_at: z
     .string()
@@ -92,7 +97,11 @@ export const createCode = createServerFn({ method: "POST" })
   .handler(async ({ data }): Promise<PromoCode> => {
     const sql = await getSql();
     const code = data.code.replace(/\s+/g, "").toUpperCase();
-    const discount = data.discount.trim() || "15% off";
+    const surveyCode = data.survey_code.replace(/\s+/g, "").toUpperCase();
+    if (data.offer_type === "ges" && surveyCode.length < 3) {
+      throw new Error("Add the GES Survey Code from the receipt.");
+    }
+    const discount = data.offer_type === "ges" ? "20% off · max Rs. 1,000" : "15% off";
     const ownerTokenHash = await hashOwnerToken(data.owner_token);
     const existing = await sql.query<{ id: number }>(
       `select id from promo_codes where code = $1 limit 1`,
@@ -105,11 +114,20 @@ export const createCode = createServerFn({ method: "POST" })
       `insert into promo_codes (
          brand, code, discount, category, note, kind, expires_at, owner_token_hash
        )
-       values ($1, $2, $3, 'food', '', 'one_time', $4, $5)
+       values ($1, $2, $3, 'food', $4, $5, $6, $7)
        returning
          id, brand, code, discount, category, note, kind,
+         ${OFFER_TYPE_SQL} as offer_type,
          expires_at, status, grabs, thanks, created_at::text as created_at`,
-      [PIZZA_HUT, code, discount, data.expires_at, ownerTokenHash],
+      [
+        PIZZA_HUT,
+        code,
+        discount,
+        data.offer_type === "ges" ? surveyCode : "",
+        data.offer_type,
+        data.expires_at,
+        ownerTokenHash,
+      ],
     );
     const row = rows[0];
     if (!row) throw new Error("Could not drop that code.");
@@ -125,6 +143,8 @@ const manageInput = z.object({
 
 const updateInput = manageInput.extend({
   code: z.string().trim().min(3).max(40),
+  offer_type: z.enum(["loyalty", "ges"]),
+  survey_code: z.string().trim().max(64).default(""),
   expires_at: z
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/, "Expiry date is required")
@@ -136,6 +156,11 @@ export const updateCode = createServerFn({ method: "POST" })
   .handler(async ({ data }): Promise<PromoCode> => {
     const sql = await getSql();
     const code = data.code.replace(/\s+/g, "").toUpperCase();
+    const surveyCode = data.survey_code.replace(/\s+/g, "").toUpperCase();
+    if (data.offer_type === "ges" && surveyCode.length < 3) {
+      throw new Error("Add the GES Survey Code from the receipt.");
+    }
+    const discount = data.offer_type === "ges" ? "20% off · max Rs. 1,000" : "15% off";
     const ownerTokenHash = await hashOwnerToken(data.owner_token);
     const duplicate = await sql.query<{ id: number }>(
       `select id from promo_codes where code = $1 and id <> $2 limit 1`,
@@ -144,12 +169,21 @@ export const updateCode = createServerFn({ method: "POST" })
     if (duplicate.length) throw new Error("That code is already in the jar.");
     const rows = await sql.query<PromoCode>(
       `update promo_codes
-       set code = $1, expires_at = $2
-       where id = $3 and ${HUT} and owner_token_hash = $4
+       set code = $1, expires_at = $2, note = $3, kind = $4, discount = $5
+       where id = $6 and ${HUT} and owner_token_hash = $7
        returning
          id, brand, code, discount, category, note, kind,
+         ${OFFER_TYPE_SQL} as offer_type,
          expires_at, status, grabs, thanks, created_at::text as created_at`,
-      [code, data.expires_at, data.id, ownerTokenHash],
+      [
+        code,
+        data.expires_at,
+        data.offer_type === "ges" ? surveyCode : "",
+        data.offer_type,
+        discount,
+        data.id,
+        ownerTokenHash,
+      ],
     );
     const row = rows[0];
     if (!row) throw new Error("This browser cannot manage that code.");
