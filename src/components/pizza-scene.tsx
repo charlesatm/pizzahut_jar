@@ -14,15 +14,11 @@ const PEPPER = "#4d7f48";
 const SHADOW = "#09090a";
 const DEFAULT_PITCH = 0.02;
 const DEFAULT_YAW = -0.34;
-const BAILA_HOLD_SECONDS = 0.75;
 const BAILA_DURATION_SECONDS = 2.2;
-const BAILA_MOVE_TOLERANCE = 8;
-const BAILA_SESSION_KEY = "share-a-slice:baila-played";
 
 type PizzaSceneProps = {
   pulse?: number;
   onDraggingChange?: (dragging: boolean) => void;
-  onBaila?: () => void;
 };
 
 type DragState = {
@@ -37,88 +33,7 @@ type DragState = {
   yawVelocity: number;
   hoverX: number;
   hoverY: number;
-  holdTime: number;
-  holdCancelled: boolean;
-  holdTriggered: boolean;
-  startX: number;
-  startY: number;
 };
-
-type BailaAudio = {
-  context: AudioContext;
-  master: GainNode;
-  sfx: GainNode;
-};
-
-function hasPlayedBaila() {
-  try {
-    return window.sessionStorage.getItem(BAILA_SESSION_KEY) === "true";
-  } catch {
-    return false;
-  }
-}
-
-function markBailaPlayed() {
-  try {
-    window.sessionStorage.setItem(BAILA_SESSION_KEY, "true");
-  } catch {
-    // The animation can still play when storage is unavailable.
-  }
-}
-
-function unlockBailaAudio(current: BailaAudio | null) {
-  if (current) {
-    if (current.context.state === "suspended") {
-      void current.context.resume().catch(() => undefined);
-    }
-    return current;
-  }
-
-  const AudioContextConstructor =
-    window.AudioContext ??
-    (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
-  if (!AudioContextConstructor) return null;
-
-  try {
-    const context = new AudioContextConstructor({ latencyHint: "interactive" });
-    const master = context.createGain();
-    const sfx = context.createGain();
-    master.gain.setValueAtTime(0.52, context.currentTime);
-    sfx.gain.setValueAtTime(1, context.currentTime);
-    sfx.connect(master);
-    master.connect(context.destination);
-    if (context.state === "suspended") void context.resume().catch(() => undefined);
-    return { context, master, sfx };
-  } catch {
-    return null;
-  }
-}
-
-function playBailaBoing(audio: BailaAudio | null) {
-  if (!audio || audio.context.state !== "running") return;
-
-  const { context, sfx } = audio;
-  const now = context.currentTime;
-  const oscillator = context.createOscillator();
-  const gain = context.createGain();
-
-  oscillator.type = "triangle";
-  oscillator.frequency.setValueAtTime(185, now);
-  oscillator.frequency.exponentialRampToValueAtTime(92, now + 0.16);
-  oscillator.frequency.exponentialRampToValueAtTime(138, now + 0.34);
-  gain.gain.setValueAtTime(0.0001, now);
-  gain.gain.exponentialRampToValueAtTime(0.11, now + 0.015);
-  gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.4);
-
-  oscillator.connect(gain);
-  gain.connect(sfx);
-  oscillator.start(now);
-  oscillator.stop(now + 0.42);
-  oscillator.onended = () => {
-    oscillator.disconnect();
-    gain.disconnect();
-  };
-}
 
 function useReducedMotion() {
   const [reducedMotion, setReducedMotion] = useState(
@@ -214,12 +129,10 @@ function PizzaMesh({
   pulse,
   reducedMotion,
   onDraggingChange,
-  onBaila,
 }: {
   pulse: number;
   reducedMotion: boolean;
   onDraggingChange: (dragging: boolean) => void;
-  onBaila: () => void;
 }) {
   const group = useRef<THREE.Group>(null);
   const pepperoniGroup = useRef<THREE.Group>(null);
@@ -228,7 +141,6 @@ function PizzaMesh({
   const bounce = useRef(0);
   const press = useRef(0);
   const bailaTime = useRef(0);
-  const bailaAudio = useRef<BailaAudio | null>(null);
   const drag = useRef<DragState>({
     dragging: false,
     pointerId: null,
@@ -241,11 +153,6 @@ function PizzaMesh({
     yawVelocity: 0,
     hoverX: 0,
     hoverY: 0,
-    holdTime: 0,
-    holdCancelled: false,
-    holdTriggered: false,
-    startX: 0,
-    startY: 0,
   });
 
   const baseGeometry = useMemo(() => makeSliceGeometry(sliceShape(), 0.24, 0.045), []);
@@ -272,24 +179,19 @@ function PizzaMesh({
   );
 
   useEffect(() => {
-    if (pulse > 0) bounce.current = 1;
+    if (pulse > 0) {
+      bounce.current = 1;
+      bailaTime.current = Number.EPSILON;
+    }
   }, [pulse]);
 
   useEffect(() => () => onDraggingChange(false), [onDraggingChange]);
-
-  useEffect(
-    () => () => {
-      if (bailaAudio.current) void bailaAudio.current.context.close().catch(() => undefined);
-    },
-    [],
-  );
 
   const finishDrag = (event: ThreeEvent<PointerEvent>) => {
     const state = drag.current;
     if (!state.dragging || state.pointerId !== event.pointerId) return;
     state.dragging = false;
     state.pointerId = null;
-    state.holdTime = 0;
     if (reducedMotion) {
       state.pitchVelocity = 0;
       state.yawVelocity = 0;
@@ -304,16 +206,10 @@ function PizzaMesh({
     state.pointerId = event.pointerId;
     state.lastX = event.clientX;
     state.lastY = event.clientY;
-    state.startX = event.clientX;
-    state.startY = event.clientY;
     state.lastTime = event.timeStamp;
-    state.holdTime = 0;
-    state.holdCancelled = hasPlayedBaila();
-    state.holdTriggered = false;
     state.pitchVelocity = 0;
     state.yawVelocity = 0;
     press.current = 1;
-    bailaAudio.current = unlockBailaAudio(bailaAudio.current);
     const captureTarget = event.target as
       | (EventTarget & {
           setPointerCapture?: (pointerId: number) => void;
@@ -333,11 +229,6 @@ function PizzaMesh({
     const elapsed = Math.max((event.timeStamp - state.lastTime) / 1000, 1 / 240);
     const yawDelta = (event.clientX - state.lastX) * 0.009;
     const pitchDelta = (event.clientY - state.lastY) * 0.006;
-    if (
-      Math.hypot(event.clientX - state.startX, event.clientY - state.startY) > BAILA_MOVE_TOLERANCE
-    ) {
-      state.holdCancelled = true;
-    }
     state.yaw += yawDelta;
     state.pitch = THREE.MathUtils.clamp(state.pitch + pitchDelta, -0.48, 0.5);
     state.yawVelocity = THREE.MathUtils.clamp(yawDelta / elapsed, -5.5, 5.5);
@@ -358,20 +249,6 @@ function PizzaMesh({
     const state = drag.current;
     time.current += step;
     bounce.current = Math.max(0, bounce.current - step * 1.7);
-
-    if (state.dragging && !state.holdCancelled && !state.holdTriggered) {
-      state.holdTime += step;
-      if (state.holdTime >= BAILA_HOLD_SECONDS) {
-        state.holdTriggered = true;
-        state.pitchVelocity = 0;
-        state.yawVelocity = 0;
-        bailaTime.current = Number.EPSILON;
-        markBailaPlayed();
-        playBailaBoing(bailaAudio.current);
-        navigator.vibrate?.(35);
-        onBaila();
-      }
-    }
 
     press.current = THREE.MathUtils.damp(
       press.current,
@@ -547,7 +424,7 @@ function PizzaMesh({
   );
 }
 
-export default function PizzaScene({ pulse = 0, onDraggingChange, onBaila }: PizzaSceneProps) {
+export default function PizzaScene({ pulse = 0, onDraggingChange }: PizzaSceneProps) {
   const [dragging, setDragging] = useState(false);
   const reducedMotion = useReducedMotion();
 
@@ -558,8 +435,6 @@ export default function PizzaScene({ pulse = 0, onDraggingChange, onBaila }: Piz
     },
     [onDraggingChange],
   );
-
-  const triggerBaila = useCallback(() => onBaila?.(), [onBaila]);
 
   return (
     <Canvas
@@ -585,12 +460,7 @@ export default function PizzaScene({ pulse = 0, onDraggingChange, onBaila }: Piz
       <pointLight position={[2.3, 1.4, 2.2]} intensity={2.2} color="#d93a32" />
       <pointLight position={[-2.2, 0.8, -1]} intensity={1.2} color="#f2b36d" />
       <SparkleDust reducedMotion={reducedMotion} />
-      <PizzaMesh
-        pulse={pulse}
-        reducedMotion={reducedMotion}
-        onDraggingChange={updateDragging}
-        onBaila={triggerBaila}
-      />
+      <PizzaMesh pulse={pulse} reducedMotion={reducedMotion} onDraggingChange={updateDragging} />
       <mesh position={[0.25, -0.66, 0.15]} rotation={[-Math.PI / 2, 0, -0.14]} receiveShadow>
         <planeGeometry args={[3.6, 2.4]} />
         <shadowMaterial color={SHADOW} transparent opacity={0.44} />

@@ -2,7 +2,7 @@ import { X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
-export type ThanksMoment = "shared" | "used" | "invalid" | "baila";
+export type ThanksMoment = "shared" | "used" | "invalid";
 
 const COPY: Record<ThanksMoment, { title: string; message: string }> = {
   shared: {
@@ -16,10 +16,6 @@ const COPY: Record<ThanksMoment, { title: string; message: string }> = {
   invalid: {
     title: "Aney, good save.",
     message: "Thanks for spotting that boru code, machan. One less dud in the jar.",
-  },
-  baila: {
-    title: "Ado, machan!",
-    message: "Pizza eka vibe ekata giya!",
   },
 };
 
@@ -58,7 +54,7 @@ export function ShareThanksToast({
       <button
         type="button"
         className="share-thanks-close"
-        aria-label="Dismiss message"
+        aria-label="Dismiss thank-you message"
         onClick={() => toast.dismiss(toastId)}
       >
         <X aria-hidden="true" />
