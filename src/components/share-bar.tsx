@@ -3,7 +3,7 @@ import { useState, type FormEvent } from "react";
 import { toast } from "sonner";
 import { createOwnerToken, saveOwnerToken } from "@/lib/code-ownership";
 import { createCode, type OfferType } from "@/lib/codes";
-import { defaultExpiresAt, gesExpiresAt, todayIso } from "@/lib/expiry";
+import { defaultExpiresAt, defaultGesExpiresAt, todayIso } from "@/lib/expiry";
 import { showThanks } from "@/lib/show-thanks";
 
 export function ShareBar({ onShared }: { onShared?: () => void }) {
@@ -11,7 +11,7 @@ export function ShareBar({ onShared }: { onShared?: () => void }) {
   const [code, setCode] = useState("");
   const [surveyCode, setSurveyCode] = useState("");
   const [expiresAt, setExpiresAt] = useState(defaultExpiresAt);
-  const [visitDate, setVisitDate] = useState(todayIso);
+  const [gesExpiry, setGesExpiry] = useState(defaultGesExpiresAt);
   const queryClient = useQueryClient();
 
   function selectOffer(nextOffer: OfferType) {
@@ -28,7 +28,7 @@ export function ShareBar({ onShared }: { onShared?: () => void }) {
           code,
           offer_type: offerType,
           survey_code: surveyCode,
-          expires_at: offerType === "ges" ? gesExpiresAt(visitDate) : expiresAt,
+          expires_at: offerType === "ges" ? gesExpiry : expiresAt,
           owner_token: ownerToken,
         },
       }),
@@ -47,7 +47,7 @@ export function ShareBar({ onShared }: { onShared?: () => void }) {
       setCode("");
       setSurveyCode("");
       setExpiresAt(defaultExpiresAt());
-      setVisitDate(todayIso());
+      setGesExpiry(defaultGesExpiresAt());
       showThanks("shared", created.sharer_name);
       onShared?.();
     } catch (err) {
@@ -120,17 +120,16 @@ export function ShareBar({ onShared }: { onShared?: () => void }) {
       </div>
       <div className="share-control share-date-control">
         <label htmlFor="share-expiry" className="share-label">
-          {offerType === "ges" ? "Visit date · valid 21 days" : "Valid till"}
+          {offerType === "ges" ? "Valid till · 21 days by default" : "Valid till"}
         </label>
         <input
           id="share-expiry"
           type="date"
           required
-          min={offerType === "ges" ? undefined : todayIso()}
-          max={offerType === "ges" ? todayIso() : undefined}
-          value={offerType === "ges" ? visitDate : expiresAt}
+          min={todayIso()}
+          value={offerType === "ges" ? gesExpiry : expiresAt}
           onChange={(e) =>
-            offerType === "ges" ? setVisitDate(e.target.value) : setExpiresAt(e.target.value)
+            offerType === "ges" ? setGesExpiry(e.target.value) : setExpiresAt(e.target.value)
           }
           className="share-input share-date-input"
         />

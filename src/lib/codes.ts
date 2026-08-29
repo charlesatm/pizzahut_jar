@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { getSql } from "@/lib/db";
-import { defaultExpiresAt, todayIso } from "@/lib/expiry";
+import { defaultExpiresAt, defaultGesExpiresAt, todayIso } from "@/lib/expiry";
 
 const PIZZA_HUT = "Pizza Hut";
 const OWNER_TOKEN_PATTERN = /^[a-f0-9]{64}$/;
@@ -129,8 +129,7 @@ const createInput = z.object({
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/, "Expiry date is required")
     .or(z.literal(""))
-    .transform((value) => value || defaultExpiresAt())
-    .refine((value) => value >= todayIso(), "Expiry date cannot be in the past"),
+    .refine((value) => !value || value >= todayIso(), "Expiry date cannot be in the past"),
 });
 
 async function hashOwnerToken(token: string) {
@@ -148,6 +147,8 @@ export const createCode = createServerFn({ method: "POST" })
       throw new Error("Add the GES Survey Code from the receipt.");
     }
     const discount = data.offer_type === "ges" ? "20% off · max Rs. 1,000" : "15% off";
+    const expiresAt =
+      data.expires_at || (data.offer_type === "ges" ? defaultGesExpiresAt() : defaultExpiresAt());
     const sharerName = createSharerName();
     const ownerTokenHash = await hashOwnerToken(data.owner_token);
     const existing = await sql.query<{ id: number }>(
@@ -172,7 +173,7 @@ export const createCode = createServerFn({ method: "POST" })
         discount,
         data.offer_type === "ges" ? surveyCode : "",
         data.offer_type,
-        data.expires_at,
+        expiresAt,
         ownerTokenHash,
         sharerName,
       ],

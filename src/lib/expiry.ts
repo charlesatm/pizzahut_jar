@@ -8,8 +8,8 @@ export function defaultExpiresAt(from = new Date()) {
   return format(addDays(from, LOYALTY_CODE_LIFE_DAYS), "yyyy-MM-dd");
 }
 
-export function gesExpiresAt(visitDate: string) {
-  return format(addDays(new Date(`${visitDate}T12:00:00`), GES_CODE_LIFE_DAYS), "yyyy-MM-dd");
+export function defaultGesExpiresAt(from = new Date()) {
+  return format(addDays(from, GES_CODE_LIFE_DAYS), "yyyy-MM-dd");
 }
 
 export function todayIso(from = new Date()) {

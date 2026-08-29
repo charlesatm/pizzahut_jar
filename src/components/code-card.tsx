@@ -12,7 +12,7 @@ import {
   updateCode,
   type PromoCode,
 } from "@/lib/codes";
-import { defaultExpiresAt, todayIso } from "@/lib/expiry";
+import { defaultExpiresAt, defaultGesExpiresAt, todayIso } from "@/lib/expiry";
 import { showThanks } from "@/lib/show-thanks";
 import { cn, copyText } from "@/lib/utils";
 
@@ -32,7 +32,8 @@ export function CodeCard({ code }: { code: PromoCode }) {
   const [draftCode, setDraftCode] = useState(code.code);
   const [draftSurveyCode, setDraftSurveyCode] = useState(code.note);
   const [draftExpiresAt, setDraftExpiresAt] = useState(
-    code.expires_at?.slice(0, 10) ?? defaultExpiresAt(),
+    code.expires_at?.slice(0, 10) ??
+      (code.offer_type === "ges" ? defaultGesExpiresAt() : defaultExpiresAt()),
   );
   const closed = code.status !== "open";
   const isGes = code.offer_type === "ges";
@@ -137,7 +138,10 @@ export function CodeCard({ code }: { code: PromoCode }) {
   function startEditing() {
     setDraftCode(code.code);
     setDraftSurveyCode(code.note);
-    setDraftExpiresAt(code.expires_at?.slice(0, 10) ?? defaultExpiresAt());
+    setDraftExpiresAt(
+      code.expires_at?.slice(0, 10) ??
+        (code.offer_type === "ges" ? defaultGesExpiresAt() : defaultExpiresAt()),
+    );
     setConfirmingDelete(false);
     setEditing(true);
   }
