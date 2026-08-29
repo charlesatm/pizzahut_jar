@@ -291,6 +291,55 @@
     flex: 0 0 clamp(14.5rem, 34svh, 19rem);
   }
 
+  .pizza-canvas {
+    cursor: grab;
+    touch-action: none;
+  }
+
+  .pizza-canvas.is-dragging {
+    cursor: grabbing;
+  }
+
+  .pizza-interaction-hint {
+    position: absolute;
+    right: 1rem;
+    bottom: 0.75rem;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 999px;
+    background: rgba(15, 16, 18, 0.68);
+    color: var(--color-muted-foreground);
+    padding: 0.42rem 0.65rem;
+    font-size: 0.65rem;
+    letter-spacing: 0.04em;
+    pointer-events: none;
+    transition:
+      opacity var(--motion-fast) ease-out,
+      transform var(--motion-fast) ease-out;
+  }
+
+  .pizza-hero[data-dragging="true"] .pizza-interaction-hint {
+    opacity: 0.42;
+    transform: translateY(2px);
+  }
+
+  .pizza-hint-touch {
+    display: none;
+  }
+
+  @media (pointer: coarse) {
+    .pizza-hint-pointer {
+      display: none;
+    }
+
+    .pizza-hint-touch {
+      display: inline;
+    }
+  }
+
   .content-page {
     width: 100%;
     padding-block: 1.5rem 2rem;
