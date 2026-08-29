@@ -1,5 +1,6 @@
-import { lazy, Suspense, useEffect, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useState } from "react";
 import { Rotate3D } from "lucide-react";
+import { showThanks } from "@/lib/show-thanks";
 import { cn } from "@/lib/utils";
 
 const PizzaScene = lazy(() => import("@/components/pizza-scene"));
@@ -16,6 +17,8 @@ export function PizzaHero({ pulse = 0, className }: { pulse?: number; className?
     setLive(true);
   }, []);
 
+  const showBailaMessage = useCallback(() => showThanks("baila"), []);
+
   return (
     <div
       className={cn("pizza-hero relative w-full", className)}
@@ -24,7 +27,7 @@ export function PizzaHero({ pulse = 0, className }: { pulse?: number; className?
       {live ? (
         <Suspense fallback={null}>
           <div className="absolute inset-0">
-            <PizzaScene pulse={pulse} onDraggingChange={setDragging} />
+            <PizzaScene pulse={pulse} onDraggingChange={setDragging} onBaila={showBailaMessage} />
           </div>
         </Suspense>
       ) : null}

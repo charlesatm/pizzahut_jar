@@ -14,10 +14,15 @@ const PEPPER = "#4d7f48";
 const SHADOW = "#09090a";
 const DEFAULT_PITCH = 0.02;
 const DEFAULT_YAW = -0.34;
+const BAILA_HOLD_SECONDS = 0.75;
+const BAILA_DURATION_SECONDS = 2.2;
+const BAILA_MOVE_TOLERANCE = 8;
+const BAILA_SESSION_KEY = "share-a-slice:baila-played";
 
 type PizzaSceneProps = {
   pulse?: number;
   onDraggingChange?: (dragging: boolean) => void;
+  onBaila?: () => void;
 };
 
 type DragState = {
@@ -32,10 +37,95 @@ type DragState = {
   yawVelocity: number;
   hoverX: number;
   hoverY: number;
+  holdTime: number;
+  holdCancelled: boolean;
+  holdTriggered: boolean;
+  startX: number;
+  startY: number;
 };
 
+type BailaAudio = {
+  context: AudioContext;
+  master: GainNode;
+  sfx: GainNode;
+};
+
+function hasPlayedBaila() {
+  try {
+    return window.sessionStorage.getItem(BAILA_SESSION_KEY) === "true";
+  } catch {
+    return false;
+  }
+}
+
+function markBailaPlayed() {
+  try {
+    window.sessionStorage.setItem(BAILA_SESSION_KEY, "true");
+  } catch {
+    // The animation can still play when storage is unavailable.
+  }
+}
+
+function unlockBailaAudio(current: BailaAudio | null) {
+  if (current) {
+    if (current.context.state === "suspended") {
+      void current.context.resume().catch(() => undefined);
+    }
+    return current;
+  }
+
+  const AudioContextConstructor =
+    window.AudioContext ??
+    (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+  if (!AudioContextConstructor) return null;
+
+  try {
+    const context = new AudioContextConstructor({ latencyHint: "interactive" });
+    const master = context.createGain();
+    const sfx = context.createGain();
+    master.gain.setValueAtTime(0.52, context.currentTime);
+    sfx.gain.setValueAtTime(1, context.currentTime);
+    sfx.connect(master);
+    master.connect(context.destination);
+    if (context.state === "suspended") void context.resume().catch(() => undefined);
+    return { context, master, sfx };
+  } catch {
+    return null;
+  }
+}
+
+function playBailaBoing(audio: BailaAudio | null) {
+  if (!audio || audio.context.state !== "running") return;
+
+  const { context, sfx } = audio;
+  const now = context.currentTime;
+  const oscillator = context.createOscillator();
+  const gain = context.createGain();
+
+  oscillator.type = "triangle";
+  oscillator.frequency.setValueAtTime(185, now);
+  oscillator.frequency.exponentialRampToValueAtTime(92, now + 0.16);
+  oscillator.frequency.exponentialRampToValueAtTime(138, now + 0.34);
+  gain.gain.setValueAtTime(0.0001, now);
+  gain.gain.exponentialRampToValueAtTime(0.11, now + 0.015);
+  gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.4);
+
+  oscillator.connect(gain);
+  gain.connect(sfx);
+  oscillator.start(now);
+  oscillator.stop(now + 0.42);
+  oscillator.onended = () => {
+    oscillator.disconnect();
+    gain.disconnect();
+  };
+}
+
 function useReducedMotion() {
-  const [reducedMotion, setReducedMotion] = useState(false);
+  const [reducedMotion, setReducedMotion] = useState(
+    () =>
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+  );
 
   useEffect(() => {
     const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -124,15 +214,21 @@ function PizzaMesh({
   pulse,
   reducedMotion,
   onDraggingChange,
+  onBaila,
 }: {
   pulse: number;
   reducedMotion: boolean;
   onDraggingChange: (dragging: boolean) => void;
+  onBaila: () => void;
 }) {
   const group = useRef<THREE.Group>(null);
+  const pepperoniGroup = useRef<THREE.Group>(null);
+  const cheeseDrips = useRef<THREE.Group>(null);
   const time = useRef(0);
   const bounce = useRef(0);
   const press = useRef(0);
+  const bailaTime = useRef(0);
+  const bailaAudio = useRef<BailaAudio | null>(null);
   const drag = useRef<DragState>({
     dragging: false,
     pointerId: null,
@@ -145,6 +241,11 @@ function PizzaMesh({
     yawVelocity: 0,
     hoverX: 0,
     hoverY: 0,
+    holdTime: 0,
+    holdCancelled: false,
+    holdTriggered: false,
+    startX: 0,
+    startY: 0,
   });
 
   const baseGeometry = useMemo(() => makeSliceGeometry(sliceShape(), 0.24, 0.045), []);
@@ -176,11 +277,19 @@ function PizzaMesh({
 
   useEffect(() => () => onDraggingChange(false), [onDraggingChange]);
 
+  useEffect(
+    () => () => {
+      if (bailaAudio.current) void bailaAudio.current.context.close().catch(() => undefined);
+    },
+    [],
+  );
+
   const finishDrag = (event: ThreeEvent<PointerEvent>) => {
     const state = drag.current;
     if (!state.dragging || state.pointerId !== event.pointerId) return;
     state.dragging = false;
     state.pointerId = null;
+    state.holdTime = 0;
     if (reducedMotion) {
       state.pitchVelocity = 0;
       state.yawVelocity = 0;
@@ -195,10 +304,16 @@ function PizzaMesh({
     state.pointerId = event.pointerId;
     state.lastX = event.clientX;
     state.lastY = event.clientY;
+    state.startX = event.clientX;
+    state.startY = event.clientY;
     state.lastTime = event.timeStamp;
+    state.holdTime = 0;
+    state.holdCancelled = hasPlayedBaila();
+    state.holdTriggered = false;
     state.pitchVelocity = 0;
     state.yawVelocity = 0;
     press.current = 1;
+    bailaAudio.current = unlockBailaAudio(bailaAudio.current);
     const captureTarget = event.target as
       | (EventTarget & {
           setPointerCapture?: (pointerId: number) => void;
@@ -218,6 +333,11 @@ function PizzaMesh({
     const elapsed = Math.max((event.timeStamp - state.lastTime) / 1000, 1 / 240);
     const yawDelta = (event.clientX - state.lastX) * 0.009;
     const pitchDelta = (event.clientY - state.lastY) * 0.006;
+    if (
+      Math.hypot(event.clientX - state.startX, event.clientY - state.startY) > BAILA_MOVE_TOLERANCE
+    ) {
+      state.holdCancelled = true;
+    }
     state.yaw += yawDelta;
     state.pitch = THREE.MathUtils.clamp(state.pitch + pitchDelta, -0.48, 0.5);
     state.yawVelocity = THREE.MathUtils.clamp(yawDelta / elapsed, -5.5, 5.5);
@@ -235,17 +355,32 @@ function PizzaMesh({
 
   useFrame((_, delta) => {
     const step = Math.min(delta, 0.1);
+    const state = drag.current;
     time.current += step;
     bounce.current = Math.max(0, bounce.current - step * 1.7);
+
+    if (state.dragging && !state.holdCancelled && !state.holdTriggered) {
+      state.holdTime += step;
+      if (state.holdTime >= BAILA_HOLD_SECONDS) {
+        state.holdTriggered = true;
+        state.pitchVelocity = 0;
+        state.yawVelocity = 0;
+        bailaTime.current = Number.EPSILON;
+        markBailaPlayed();
+        playBailaBoing(bailaAudio.current);
+        navigator.vibrate?.(35);
+        onBaila();
+      }
+    }
+
     press.current = THREE.MathUtils.damp(
       press.current,
-      drag.current.dragging ? 1 : 0,
-      drag.current.dragging ? 18 : 10,
+      state.dragging ? 1 : 0,
+      state.dragging ? 18 : 10,
       step,
     );
     if (!group.current) return;
 
-    const state = drag.current;
     if (!state.dragging && !reducedMotion) {
       state.yaw += state.yawVelocity * step;
       state.pitch = THREE.MathUtils.clamp(state.pitch + state.pitchVelocity * step, -0.48, 0.5);
@@ -254,7 +389,20 @@ function PizzaMesh({
       state.pitchVelocity *= inertia;
     }
 
+    let bailaProgress = 0;
+    if (bailaTime.current > 0) {
+      bailaTime.current += step;
+      bailaProgress = Math.min(bailaTime.current / BAILA_DURATION_SECONDS, 1);
+      if (bailaProgress === 1) bailaTime.current = 0;
+    }
+
     const kick = Math.sin((1 - bounce.current) * Math.PI) * bounce.current;
+    const bailaEnvelope = reducedMotion ? 0 : Math.sin(bailaProgress * Math.PI);
+    const bailaLift =
+      bailaEnvelope * (0.1 + Math.abs(Math.sin(bailaProgress * Math.PI * 6)) * 0.09);
+    const bailaYaw = Math.sin(bailaProgress * Math.PI * 4) * bailaEnvelope * 0.2;
+    const bailaRoll = Math.sin(bailaProgress * Math.PI * 8) * bailaEnvelope * 0.17;
+    const bailaSquash = Math.sin(bailaProgress * Math.PI * 10) * bailaEnvelope * 0.035;
     const idleLift = reducedMotion ? 0 : Math.sin(time.current * 1.15) * 0.065;
     const idleYaw = reducedMotion ? 0 : Math.sin(time.current * 0.42) * 0.035;
     const idleRoll = reducedMotion ? 0 : Math.sin(time.current * 0.55) * 0.018;
@@ -262,7 +410,7 @@ function PizzaMesh({
     const hoverYaw = !state.dragging && !reducedMotion ? state.hoverX * 0.055 : 0;
     const smoothing = state.dragging ? 24 : 11;
 
-    group.current.position.y = 0.36 + idleLift + kick * 0.12 + press.current * 0.035;
+    group.current.position.y = 0.36 + idleLift + kick * 0.12 + press.current * 0.035 + bailaLift;
     group.current.rotation.x = THREE.MathUtils.damp(
       group.current.rotation.x,
       state.pitch - hoverPitch,
@@ -271,18 +419,46 @@ function PizzaMesh({
     );
     group.current.rotation.y = THREE.MathUtils.damp(
       group.current.rotation.y,
-      state.yaw + idleYaw + hoverYaw,
+      state.yaw + idleYaw + hoverYaw + bailaYaw,
       smoothing,
       step,
     );
     group.current.rotation.z = THREE.MathUtils.damp(
       group.current.rotation.z,
-      -0.045 + idleRoll,
+      -0.045 + idleRoll + bailaRoll,
       11,
       step,
     );
     const scale = 1 + kick * 0.045 + press.current * 0.025;
-    group.current.scale.setScalar(scale);
+    group.current.scale.set(
+      scale * (1 + bailaSquash),
+      scale * (1 - bailaSquash * 0.55),
+      scale * (1 + bailaSquash),
+    );
+
+    if (pepperoniGroup.current) {
+      pepperoniGroup.current.position.y = THREE.MathUtils.damp(
+        pepperoniGroup.current.position.y,
+        bailaEnvelope * 0.3,
+        16,
+        step,
+      );
+      pepperoniGroup.current.rotation.y = THREE.MathUtils.damp(
+        pepperoniGroup.current.rotation.y,
+        Math.sin(bailaProgress * Math.PI * 5) * bailaEnvelope * 0.72,
+        18,
+        step,
+      );
+    }
+
+    if (cheeseDrips.current) {
+      cheeseDrips.current.scale.y = THREE.MathUtils.damp(
+        cheeseDrips.current.scale.y,
+        1 + bailaEnvelope * 0.72,
+        14,
+        step,
+      );
+    }
   });
 
   const pepperoni: Array<[number, number, number]> = [
@@ -338,36 +514,40 @@ function PizzaMesh({
         />
       </mesh>
 
-      {pepperoni.map(([x, z, turn]) => (
-        <mesh key={`${x}-${z}`} position={[x, 0.255, z]} rotation={[0, turn, 0]} castShadow>
-          <cylinderGeometry args={[0.185, 0.17, 0.065, 8]} />
-          <meshStandardMaterial
-            color={PEPPERONI}
-            emissive={PEPPERONI_EDGE}
-            emissiveIntensity={0.045}
-            roughness={0.7}
-            flatShading
-          />
-        </mesh>
-      ))}
+      <group ref={pepperoniGroup}>
+        {pepperoni.map(([x, z, turn]) => (
+          <mesh key={`${x}-${z}`} position={[x, 0.255, z]} rotation={[0, turn, 0]} castShadow>
+            <cylinderGeometry args={[0.185, 0.17, 0.065, 8]} />
+            <meshStandardMaterial
+              color={PEPPERONI}
+              emissive={PEPPERONI_EDGE}
+              emissiveIntensity={0.045}
+              roughness={0.7}
+              flatShading
+            />
+          </mesh>
+        ))}
+      </group>
 
       <mesh geometry={herbGeometry} position={[-0.05, 0.27, 0.05]} castShadow>
         <meshStandardMaterial color={PEPPER} roughness={0.8} flatShading />
       </mesh>
 
-      <mesh position={[-0.27, -0.07, 1.03]} castShadow>
-        <capsuleGeometry args={[0.075, 0.24, 2, 6]} />
-        <meshStandardMaterial color={CHEESE_EDGE} roughness={0.72} flatShading />
-      </mesh>
-      <mesh position={[0.38, -0.02, 0.58]} castShadow>
-        <capsuleGeometry args={[0.085, 0.32, 2, 6]} />
-        <meshStandardMaterial color={CHEESE_EDGE} roughness={0.72} flatShading />
-      </mesh>
+      <group ref={cheeseDrips}>
+        <mesh position={[-0.27, -0.07, 1.03]} castShadow>
+          <capsuleGeometry args={[0.075, 0.24, 2, 6]} />
+          <meshStandardMaterial color={CHEESE_EDGE} roughness={0.72} flatShading />
+        </mesh>
+        <mesh position={[0.38, -0.02, 0.58]} castShadow>
+          <capsuleGeometry args={[0.085, 0.32, 2, 6]} />
+          <meshStandardMaterial color={CHEESE_EDGE} roughness={0.72} flatShading />
+        </mesh>
+      </group>
     </group>
   );
 }
 
-export default function PizzaScene({ pulse = 0, onDraggingChange }: PizzaSceneProps) {
+export default function PizzaScene({ pulse = 0, onDraggingChange, onBaila }: PizzaSceneProps) {
   const [dragging, setDragging] = useState(false);
   const reducedMotion = useReducedMotion();
 
@@ -378,6 +558,8 @@ export default function PizzaScene({ pulse = 0, onDraggingChange }: PizzaScenePr
     },
     [onDraggingChange],
   );
+
+  const triggerBaila = useCallback(() => onBaila?.(), [onBaila]);
 
   return (
     <Canvas
@@ -403,7 +585,12 @@ export default function PizzaScene({ pulse = 0, onDraggingChange }: PizzaScenePr
       <pointLight position={[2.3, 1.4, 2.2]} intensity={2.2} color="#d93a32" />
       <pointLight position={[-2.2, 0.8, -1]} intensity={1.2} color="#f2b36d" />
       <SparkleDust reducedMotion={reducedMotion} />
-      <PizzaMesh pulse={pulse} reducedMotion={reducedMotion} onDraggingChange={updateDragging} />
+      <PizzaMesh
+        pulse={pulse}
+        reducedMotion={reducedMotion}
+        onDraggingChange={updateDragging}
+        onBaila={triggerBaila}
+      />
       <mesh position={[0.25, -0.66, 0.15]} rotation={[-Math.PI / 2, 0, -0.14]} receiveShadow>
         <planeGeometry args={[3.6, 2.4]} />
         <shadowMaterial color={SHADOW} transparent opacity={0.44} />
