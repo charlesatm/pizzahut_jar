@@ -5,6 +5,42 @@ import { defaultExpiresAt, todayIso } from "@/lib/expiry";
 
 const PIZZA_HUT = "Pizza Hut";
 const OWNER_TOKEN_PATTERN = /^[a-f0-9]{64}$/;
+const NAME_FIRST = [
+  "Baila",
+  "Cheesy",
+  "Chill",
+  "Cosmic",
+  "Crispy",
+  "Dancing",
+  "Funky",
+  "Happy",
+  "Lucky",
+  "Mighty",
+  "Saucy",
+  "Sneaky",
+  "Spicy",
+  "Toasty",
+  "Turbo",
+  "Zesty",
+] as const;
+const NAME_SECOND = [
+  "Buddy",
+  "Coconut",
+  "Comet",
+  "Drummer",
+  "Firefly",
+  "Gecko",
+  "Lion",
+  "Machan",
+  "Mango",
+  "Parrot",
+  "Pepper",
+  "Rocket",
+  "Slice",
+  "TukTuk",
+  "Vibe",
+  "Wizard",
+] as const;
 
 type CodeStatus = "open" | "claimed" | "invalid" | "expired";
 type CodeKind = "one_time" | "reusable" | "loyalty" | "ges";
@@ -19,6 +55,7 @@ export type PromoCode = {
   note: string;
   kind: CodeKind;
   offer_type: OfferType;
+  sharer_name: string;
   expires_at: string | null;
   status: CodeStatus;
   grabs: number;
@@ -33,6 +70,15 @@ end`;
 
 const HUT = `brand = 'Pizza Hut'`;
 const OFFER_TYPE_SQL = `case when kind = 'ges' then 'ges' else 'loyalty' end`;
+
+function randomItem<const T extends readonly string[]>(items: T): T[number] {
+  const random = crypto.getRandomValues(new Uint32Array(1))[0] ?? 0;
+  return items[random % items.length];
+}
+
+function createSharerName() {
+  return `${randomItem(NAME_FIRST)} ${randomItem(NAME_SECOND)}`;
+}
 
 const listInput = z.object({
   view: z.enum(["open", "all"]).optional().default("open"),
@@ -63,7 +109,7 @@ export const listCodes = createServerFn({ method: "GET" })
     const rows = await sql.query<PromoCode>(
       `select
          id, brand, code, discount, category, note, kind,
-         ${OFFER_TYPE_SQL} as offer_type,
+         ${OFFER_TYPE_SQL} as offer_type, sharer_name,
          expires_at, ${STATUS_SQL} as status,
          grabs, thanks, created_at::text as created_at
        from promo_codes
@@ -102,6 +148,7 @@ export const createCode = createServerFn({ method: "POST" })
       throw new Error("Add the GES Survey Code from the receipt.");
     }
     const discount = data.offer_type === "ges" ? "20% off · max Rs. 1,000" : "15% off";
+    const sharerName = createSharerName();
     const ownerTokenHash = await hashOwnerToken(data.owner_token);
     const existing = await sql.query<{ id: number }>(
       `select id from promo_codes where code = $1 limit 1`,
@@ -112,12 +159,12 @@ export const createCode = createServerFn({ method: "POST" })
     }
     const rows = await sql.query<PromoCode>(
       `insert into promo_codes (
-         brand, code, discount, category, note, kind, expires_at, owner_token_hash
+         brand, code, discount, category, note, kind, expires_at, owner_token_hash, sharer_name
        )
-       values ($1, $2, $3, 'food', $4, $5, $6, $7)
+       values ($1, $2, $3, 'food', $4, $5, $6, $7, $8)
        returning
          id, brand, code, discount, category, note, kind,
-         ${OFFER_TYPE_SQL} as offer_type,
+         ${OFFER_TYPE_SQL} as offer_type, sharer_name,
          expires_at, status, grabs, thanks, created_at::text as created_at`,
       [
         PIZZA_HUT,
@@ -127,6 +174,7 @@ export const createCode = createServerFn({ method: "POST" })
         data.offer_type,
         data.expires_at,
         ownerTokenHash,
+        sharerName,
       ],
     );
     const row = rows[0];
@@ -173,7 +221,7 @@ export const updateCode = createServerFn({ method: "POST" })
        where id = $6 and ${HUT} and owner_token_hash = $7
        returning
          id, brand, code, discount, category, note, kind,
-         ${OFFER_TYPE_SQL} as offer_type,
+         ${OFFER_TYPE_SQL} as offer_type, sharer_name,
          expires_at, status, grabs, thanks, created_at::text as created_at`,
       [
         code,

@@ -573,6 +573,14 @@
     letter-spacing: -0.015em;
   }
 
+  .share-thanks-alias {
+    margin-top: 0.3rem;
+    color: var(--color-primary);
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    font-weight: 650;
+  }
+
   .share-thanks-close {
     display: inline-flex;
     width: 2.75rem;
@@ -760,6 +768,16 @@
 
   .code-card-deal {
     margin-top: 0.3rem;
+  }
+
+  .code-card-sharer {
+    color: color-mix(in srgb, var(--code-card-fg) 58%, transparent);
+    font-size: 0.68rem;
+  }
+
+  .code-card-sharer strong {
+    color: color-mix(in srgb, var(--code-card-fg) 82%, transparent);
+    font-weight: 650;
   }
 
   .code-card-field-label {

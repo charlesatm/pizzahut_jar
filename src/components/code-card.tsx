@@ -229,6 +229,9 @@ export function CodeCard({ code }: { code: PromoCode }) {
               {isGes ? code.discount : `${code.discount} · Box Topper`}
             </p>
           </button>
+          <p className="code-card-sharer">
+            Shared by <strong>{code.sharer_name || "Anonymous Machan"}</strong>
+          </p>
           {code.status === "open" ? (
             <div className="code-card-actions">
               <button

@@ -22,9 +22,11 @@ const COPY: Record<ThanksMoment, { title: string; message: string }> = {
 export function ShareThanksToast({
   moment,
   toastId,
+  sharerName,
 }: {
   moment: ThanksMoment;
   toastId: number | string;
+  sharerName?: string;
 }) {
   const [reduceMotion, setReduceMotion] = useState(false);
   const copy = COPY[moment];
@@ -50,6 +52,9 @@ export function ShareThanksToast({
       <div className="share-thanks-copy">
         <p className="share-thanks-title">{copy.title}</p>
         <p>{copy.message}</p>
+        {moment === "shared" && sharerName ? (
+          <p className="share-thanks-alias">Your AI name: {sharerName}</p>
+        ) : null}
       </div>
       <button
         type="button"

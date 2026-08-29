@@ -43,12 +43,12 @@ export function ShareBar({ onShared }: { onShared?: () => void }) {
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     try {
-      await create.mutateAsync(createOwnerToken());
+      const created = await create.mutateAsync(createOwnerToken());
       setCode("");
       setSurveyCode("");
       setExpiresAt(defaultExpiresAt());
       setVisitDate(todayIso());
-      showThanks("shared");
+      showThanks("shared", created.sharer_name);
       onShared?.();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Could not share that.");
