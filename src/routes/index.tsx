@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
+import { Info } from "lucide-react";
 import { useEffect, useState } from "react";
 import { AppShell } from "@/components/app-shell";
 import { CodeCard } from "@/components/code-card";
@@ -41,6 +42,10 @@ function Home() {
         <PizzaHero pulse={pulse} className="home-pizza" />
         <div className="share-wrap">
           <ShareBar onShared={() => setPulse((n) => n + 1)} />
+          <p className="share-support-note">
+            <Info aria-hidden="true" />
+            Currently supports Pizza Hut Sri Lanka promo codes only.
+          </p>
         </div>
 
         <section className="recent-section">

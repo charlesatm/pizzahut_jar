@@ -530,6 +530,25 @@
     opacity: 0.55;
   }
 
+  .share-support-note {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    margin-top: 0.65rem;
+    color: var(--color-muted-foreground);
+    font-size: 0.7rem;
+    line-height: 1.4;
+    text-align: center;
+  }
+
+  .share-support-note svg {
+    width: 0.85rem;
+    height: 0.85rem;
+    flex: 0 0 auto;
+    color: var(--color-primary);
+  }
+
   .share-thanks-toast {
     display: grid;
     grid-template-columns: 6rem minmax(0, 1fr) 2.75rem;
@@ -749,6 +768,74 @@
     min-height: 4rem;
     padding-block: 0.75rem 0.5rem;
     text-align: left;
+  }
+
+  .code-card-ges-copy {
+    padding-block: 0.65rem 0.45rem;
+  }
+
+  .code-card-ges-copy-grid {
+    display: grid;
+    gap: 0.35rem;
+  }
+
+  .code-card-copy-field {
+    display: flex;
+    width: 100%;
+    min-height: 3.25rem;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    border: 1px solid color-mix(in srgb, var(--code-card-fg) 12%, transparent);
+    border-radius: var(--radius-xs);
+    padding: 0.45rem 0.55rem;
+    text-align: left;
+    transition:
+      border-color var(--motion-fast) ease-out,
+      background-color var(--motion-fast) ease-out;
+  }
+
+  .code-card-copy-field:hover {
+    border-color: color-mix(in srgb, var(--code-card-accent) 35%, transparent);
+    background: color-mix(in srgb, var(--code-card-accent) 5%, transparent);
+  }
+
+  .code-card-copy-field > span {
+    min-width: 0;
+  }
+
+  .code-card-copy-field > svg,
+  .code-card-copy-all svg {
+    width: 0.85rem;
+    height: 0.85rem;
+    flex: 0 0 auto;
+    color: var(--code-card-accent);
+  }
+
+  .code-card-ges-copy-footer {
+    display: flex;
+    min-height: 2.75rem;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+  }
+
+  .code-card-copy-all {
+    display: inline-flex;
+    min-height: 2.75rem;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 0.35rem;
+    color: color-mix(in srgb, var(--code-card-fg) 72%, transparent);
+    font-size: 0.65rem;
+    font-weight: 650;
+  }
+
+  .code-card-copy-field:focus-visible,
+  .code-card-copy-all:focus-visible,
+  .code-card-copy:focus-visible {
+    outline: 2px solid color-mix(in srgb, var(--code-card-accent) 50%, transparent);
+    outline-offset: 2px;
   }
 
   .code-card-value {

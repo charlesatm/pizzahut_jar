@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { format, isValid, parseISO } from "date-fns";
-import { Pencil, Trash2 } from "lucide-react";
+import { Check, Copy, Pencil, Trash2 } from "lucide-react";
 import { useEffect, useState, type FormEvent } from "react";
 import { toast } from "sonner";
 import { getOwnerToken, removeOwnerToken } from "@/lib/code-ownership";
@@ -25,7 +25,7 @@ function formatDay(value: string | null) {
 
 export function CodeCard({ code }: { code: PromoCode }) {
   const queryClient = useQueryClient();
-  const [copied, setCopied] = useState(false);
+  const [copied, setCopied] = useState<"single" | "validation" | "survey" | "both" | null>(null);
   const [ownerToken, setOwnerToken] = useState<string | null>(null);
   const [editing, setEditing] = useState(false);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
@@ -124,15 +124,16 @@ export function CodeCard({ code }: { code: PromoCode }) {
     onSettled: () => void queryClient.invalidateQueries({ queryKey: ["codes"] }),
   });
 
-  async function handleCopy() {
-    const copyValue = isGes
-      ? `GES Survey Code: ${code.note}\nValidation Code: ${code.code}`
-      : code.code;
-    const ok = await copyText(copyValue).catch(() => false);
+  async function handleCopy(
+    value: string,
+    target: "single" | "validation" | "survey" | "both",
+    successMessage: string,
+  ) {
+    const ok = await copyText(value).catch(() => false);
     if (!closed) grab.mutate();
-    setCopied(true);
-    window.setTimeout(() => setCopied(false), 1600);
-    toast[ok ? "success" : "message"](ok ? "Copied." : "Select and copy the code.");
+    setCopied(target);
+    window.setTimeout(() => setCopied(null), 1600);
+    toast[ok ? "success" : "message"](ok ? successMessage : "Copy was blocked by this browser.");
   }
 
   function startEditing() {
@@ -215,24 +216,73 @@ export function CodeCard({ code }: { code: PromoCode }) {
         </form>
       ) : (
         <>
-          <button
-            type="button"
-            onClick={() => void handleCopy()}
-            className="code-card-copy"
-            aria-label={isGes ? "Copy GES Survey and validation codes" : `Copy ${code.code}`}
-          >
-            {isGes ? <span className="code-card-field-label">Validation code</span> : null}
-            <p className="code-card-value">{copied ? "COPIED" : code.code}</p>
-            {isGes && code.note ? (
-              <span className="code-card-secondary">
-                <span className="code-card-field-label">GES Survey code</span>
-                <span className="code-card-secondary-value">{code.note}</span>
-              </span>
-            ) : null}
-            <p className="code-card-deal">
-              {isGes ? code.discount : `${code.discount} · Box Topper`}
-            </p>
-          </button>
+          {isGes ? (
+            <div className="code-card-ges-copy">
+              <div className="code-card-ges-copy-grid">
+                <button
+                  type="button"
+                  className="code-card-copy-field"
+                  onClick={() =>
+                    void handleCopy(code.code, "validation", "Validation code copied.")
+                  }
+                  aria-label={`Copy validation code ${code.code}`}
+                >
+                  <span>
+                    <span className="code-card-field-label">Validation code</span>
+                    <span className="code-card-value">
+                      {copied === "validation" ? "COPIED" : code.code}
+                    </span>
+                  </span>
+                  {copied === "validation" ? (
+                    <Check aria-hidden="true" />
+                  ) : (
+                    <Copy aria-hidden="true" />
+                  )}
+                </button>
+                <button
+                  type="button"
+                  className="code-card-copy-field"
+                  onClick={() => void handleCopy(code.note, "survey", "GES Survey code copied.")}
+                  aria-label={`Copy GES Survey code ${code.note}`}
+                >
+                  <span>
+                    <span className="code-card-field-label">GES Survey code</span>
+                    <span className="code-card-secondary-value">
+                      {copied === "survey" ? "COPIED" : code.note}
+                    </span>
+                  </span>
+                  {copied === "survey" ? <Check aria-hidden="true" /> : <Copy aria-hidden="true" />}
+                </button>
+              </div>
+              <div className="code-card-ges-copy-footer">
+                <p className="code-card-deal">{code.discount}</p>
+                <button
+                  type="button"
+                  className="code-card-copy-all"
+                  onClick={() =>
+                    void handleCopy(
+                      `GES Survey Code: ${code.note}\nValidation Code: ${code.code}`,
+                      "both",
+                      "Both codes copied.",
+                    )
+                  }
+                >
+                  {copied === "both" ? <Check aria-hidden="true" /> : <Copy aria-hidden="true" />}
+                  {copied === "both" ? "Copied both" : "Copy both"}
+                </button>
+              </div>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => void handleCopy(code.code, "single", "Loyalty code copied.")}
+              className="code-card-copy"
+              aria-label={`Copy loyalty code ${code.code}`}
+            >
+              <span className="code-card-value">{copied === "single" ? "COPIED" : code.code}</span>
+              <p className="code-card-deal">{`${code.discount} · Box Topper`}</p>
+            </button>
+          )}
           <p className="code-card-sharer">
             Shared by <strong>{code.sharer_name || "Anonymous Machan"}</strong>
           </p>
