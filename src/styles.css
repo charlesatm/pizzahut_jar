@@ -375,14 +375,56 @@
       0 12px 34px rgba(0, 0, 0, 0.2);
   }
 
-  .share-offer-picker {
+  .share-offer-row {
     grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.25rem;
+  }
+
+  .share-offer-picker {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 0.25rem;
     border-radius: var(--radius-sm);
     background: rgba(27, 28, 30, 0.06);
     padding: 0.25rem;
+  }
+
+  .share-help-link {
+    display: inline-flex;
+    min-width: 4.25rem;
+    min-height: 3.6rem;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    border: 1px solid rgba(27, 28, 30, 0.1);
+    border-radius: var(--radius-sm);
+    color: rgba(27, 28, 30, 0.68);
+    padding-inline: 0.65rem;
+    font-size: 0.68rem;
+    font-weight: 650;
+    transition:
+      border-color var(--motion-fast) ease-out,
+      background-color var(--motion-fast) ease-out,
+      color var(--motion-fast) ease-out;
+  }
+
+  .share-help-link svg {
+    width: 0.9rem;
+    height: 0.9rem;
+    color: var(--color-primary);
+  }
+
+  .share-help-link:hover {
+    border-color: color-mix(in srgb, var(--color-primary) 28%, transparent);
+    background: color-mix(in srgb, var(--color-primary) 5%, transparent);
+    color: var(--color-card-foreground);
+  }
+
+  .share-help-link:focus-visible {
+    outline: 2px solid color-mix(in srgb, var(--color-primary) 45%, transparent);
+    outline-offset: 1px;
   }
 
   .share-offer-option {

@@ -1,4 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { Link } from "@tanstack/react-router";
+import { CircleHelp } from "lucide-react";
 import { useState, type FormEvent } from "react";
 import { toast } from "sonner";
 import { createOwnerToken, saveOwnerToken } from "@/lib/code-ownership";
@@ -61,27 +63,37 @@ export function ShareBar({ onShared }: { onShared?: () => void }) {
       onSubmit={(e) => void onSubmit(e)}
       className={`share-form share-form-${offerType}`}
     >
-      <div className="share-offer-picker" role="group" aria-label="Offer type">
-        <button
-          type="button"
-          className="share-offer-option"
-          aria-pressed={offerType === "loyalty"}
-          onClick={() => selectOffer("loyalty")}
+      <div className="share-offer-row">
+        <div className="share-offer-picker" role="group" aria-label="Offer type">
+          <button
+            type="button"
+            className="share-offer-option"
+            aria-pressed={offerType === "loyalty"}
+            onClick={() => selectOffer("loyalty")}
+          >
+            <span>Loyalty</span>
+            <strong>15%</strong>
+            <small>Email or SMS</small>
+          </button>
+          <button
+            type="button"
+            className="share-offer-option"
+            aria-pressed={offerType === "ges"}
+            onClick={() => selectOffer("ges")}
+          >
+            <span>GES Survey</span>
+            <strong>20%</strong>
+            <small>Two codes</small>
+          </button>
+        </div>
+        <Link
+          to="/how-to"
+          className="share-help-link"
+          aria-label="Open the guide for sharing and using codes"
         >
-          <span>Loyalty</span>
-          <strong>15%</strong>
-          <small>Email or SMS</small>
-        </button>
-        <button
-          type="button"
-          className="share-offer-option"
-          aria-pressed={offerType === "ges"}
-          onClick={() => selectOffer("ges")}
-        >
-          <span>GES Survey</span>
-          <strong>20%</strong>
-          <small>Two codes</small>
-        </button>
+          <CircleHelp aria-hidden="true" />
+          <span>Help</span>
+        </Link>
       </div>
       {offerType === "ges" ? (
         <div className="share-control share-survey-control">
