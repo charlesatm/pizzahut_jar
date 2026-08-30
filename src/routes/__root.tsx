@@ -7,6 +7,20 @@ import { AuthProvider } from "@/lib/auth/provider";
 import appCss from "../styles.css?url";
 
 const APP_NAME = "Share a Slice · Pizza Promo Codes";
+const GA_MEASUREMENT_ID = "G-3MBJKCLE3N";
+const GOOGLE_TAG_SETUP = `
+if (window.location.hostname === "shareaslice.lk" || window.location.hostname === "www.shareaslice.lk") {
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  window.gtag = gtag;
+  var googleTag = document.createElement("script");
+  googleTag.async = true;
+  googleTag.src = "https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}";
+  document.head.appendChild(googleTag);
+  gtag("js", new Date());
+  gtag("config", "${GA_MEASUREMENT_ID}");
+}
+`;
 
 function makeQueryClient() {
   return new QueryClient({
@@ -57,6 +71,7 @@ function RootDocument() {
     <html lang="en" className="h-full antialiased" suppressHydrationWarning>
       <head>
         <HeadContent />
+        <script dangerouslySetInnerHTML={{ __html: GOOGLE_TAG_SETUP }} />
       </head>
       <body className="h-full overflow-hidden">
         <PreviewHostBridge />
