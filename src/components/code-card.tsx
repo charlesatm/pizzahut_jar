@@ -16,6 +16,8 @@ import { defaultExpiresAt, defaultGesExpiresAt, todayIso } from "@/lib/expiry";
 import { showThanks } from "@/lib/show-thanks";
 import { cn, copyText } from "@/lib/utils";
 
+const MEAL_DEAL_NOTICE = "Voucher codes and discounts are not valid for Meal Deals.";
+
 function formatDay(value: string | null) {
   if (!value) return "";
   const date = parseISO(value.slice(0, 10));
@@ -133,7 +135,15 @@ export function CodeCard({ code }: { code: PromoCode }) {
     if (!closed) grab.mutate();
     setCopied(target);
     window.setTimeout(() => setCopied(null), 1600);
-    toast[ok ? "success" : "message"](ok ? successMessage : "Copy was blocked by this browser.");
+    if (ok) {
+      toast.success(successMessage, {
+        description: MEAL_DEAL_NOTICE,
+        descriptionClassName: "code-copy-disclaimer",
+        duration: 6500,
+      });
+    } else {
+      toast.message("Copy was blocked by this browser.");
+    }
   }
 
   function startEditing() {

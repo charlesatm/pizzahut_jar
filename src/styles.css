@@ -591,6 +591,11 @@
     color: var(--color-primary);
   }
 
+  .code-copy-disclaimer {
+    color: #d4d4d8 !important;
+    line-height: 1.45;
+  }
+
   .share-thanks-toast {
     display: grid;
     grid-template-columns: 6rem minmax(0, 1fr) 2.75rem;
