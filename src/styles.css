@@ -591,6 +591,23 @@
     color: var(--color-primary);
   }
 
+  .share-verification-note {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-top: 0.4rem;
+    color: color-mix(in srgb, var(--color-card-foreground) 58%, transparent);
+    font-size: 0.66rem;
+    line-height: 1.35;
+  }
+
+  .share-verification-note svg {
+    width: 0.8rem;
+    height: 0.8rem;
+    flex: 0 0 auto;
+    color: var(--color-primary);
+  }
+
   .code-copy-disclaimer {
     color: #d4d4d8 !important;
     line-height: 1.45;

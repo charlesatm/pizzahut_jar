@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import { CircleHelp } from "lucide-react";
+import { CircleHelp, ShieldCheck } from "lucide-react";
 import { useState, type FormEvent } from "react";
 import { toast } from "sonner";
 import { createOwnerToken, saveOwnerToken } from "@/lib/code-ownership";
@@ -129,6 +129,12 @@ export function ShareBar({ onShared }: { onShared?: () => void }) {
           autoComplete="off"
           className="share-input"
         />
+        {offerType === "loyalty" ? (
+          <span className="share-verification-note">
+            <ShieldCheck aria-hidden="true" />
+            Checked with Pizza Hut before it joins the collection.
+          </span>
+        ) : null}
       </div>
       <div className="share-control share-date-control">
         <label htmlFor="share-expiry" className="share-label">
@@ -147,7 +153,7 @@ export function ShareBar({ onShared }: { onShared?: () => void }) {
         />
       </div>
       <button type="submit" disabled={create.isPending} className="share-button">
-        {create.isPending ? "Sharing" : "Share"}
+        {create.isPending ? (offerType === "loyalty" ? "Verifying" : "Sharing") : "Share"}
       </button>
     </form>
   );

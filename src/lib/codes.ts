@@ -137,6 +137,17 @@ async function hashOwnerToken(token: string) {
   return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
 }
 
+async function requireValidLoyaltyCode(code: string) {
+  const { verifyPizzaHutLoyaltyCode } = await import("./pizza-hut-verifier.server");
+  const verification = await verifyPizzaHutLoyaltyCode(code);
+  if (verification.status === "invalid") {
+    throw new Error("Ado, Pizza Hut says this Loyalty code is not valid. Check it and try again.");
+  }
+  if (verification.status === "unavailable") {
+    throw new Error("Pizza Hut verification is unavailable right now. Try again in a moment.");
+  }
+}
+
 export const createCode = createServerFn({ method: "POST" })
   .validator(createInput)
   .handler(async ({ data }): Promise<PromoCode> => {
@@ -158,6 +169,7 @@ export const createCode = createServerFn({ method: "POST" })
     if (existing.length) {
       throw new Error("That code is already in the jar.");
     }
+    if (data.offer_type === "loyalty") await requireValidLoyaltyCode(code);
     const rows = await sql.query<PromoCode>(
       `insert into promo_codes (
          brand, code, discount, category, note, kind, expires_at, owner_token_hash, sharer_name
@@ -211,11 +223,24 @@ export const updateCode = createServerFn({ method: "POST" })
     }
     const discount = data.offer_type === "ges" ? "20% off · max Rs. 1,000" : "15% off";
     const ownerTokenHash = await hashOwnerToken(data.owner_token);
+    const current = await sql.query<{ code: string; kind: string }>(
+      `select code, kind from promo_codes
+       where id = $1 and ${HUT} and owner_token_hash = $2
+       limit 1`,
+      [data.id, ownerTokenHash],
+    );
+    if (!current.length) throw new Error("This browser cannot manage that code.");
     const duplicate = await sql.query<{ id: number }>(
       `select id from promo_codes where code = $1 and id <> $2 limit 1`,
       [code, data.id],
     );
     if (duplicate.length) throw new Error("That code is already in the jar.");
+    if (
+      data.offer_type === "loyalty" &&
+      (current[0]?.code !== code || current[0]?.kind !== "loyalty")
+    ) {
+      await requireValidLoyaltyCode(code);
+    }
     const rows = await sql.query<PromoCode>(
       `update promo_codes
        set code = $1, expires_at = $2, note = $3, kind = $4, discount = $5
