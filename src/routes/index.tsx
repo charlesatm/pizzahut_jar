@@ -8,6 +8,16 @@ import { PizzaHero } from "@/components/pizza-hero";
 import { ShareBar } from "@/components/share-bar";
 import { listCodes } from "@/lib/codes";
 
+type RecentFilter = "all" | "open" | "claimed" | "invalid" | "expired";
+
+const RECENT_FILTERS: Array<{ value: RecentFilter; label: string }> = [
+  { value: "all", label: "All" },
+  { value: "open", label: "Unused" },
+  { value: "claimed", label: "Used" },
+  { value: "invalid", label: "Not good" },
+  { value: "expired", label: "Expired" },
+];
+
 export const Route = createFileRoute("/")({
   loader: async () => {
     const codes = await listCodes({ data: { view: "all", sort: "recent" } });
@@ -21,6 +31,7 @@ function Home() {
   const initial = Route.useLoaderData();
   const [live, setLive] = useState(false);
   const [pulse, setPulse] = useState(0);
+  const [recentFilter, setRecentFilter] = useState<RecentFilter>("all");
 
   useEffect(() => {
     setLive(true);
@@ -33,7 +44,11 @@ function Home() {
     placeholderData: initial.codes,
   });
 
-  const recent = (codesQuery.data ?? []).slice(0, 8);
+  const allCodes = codesQuery.data ?? [];
+  const recent = allCodes
+    .filter((code) => recentFilter === "all" || code.status === recentFilter)
+    .slice(0, 8);
+  const selectedFilter = RECENT_FILTERS.find((filter) => filter.value === recentFilter);
 
   return (
     <AppShell>
@@ -49,9 +64,37 @@ function Home() {
         </div>
 
         <section className="recent-section">
-          <h2 className="section-label">Recently shared codes</h2>
+          <div className="recent-toolbar">
+            <h2 className="section-label">Recently shared codes</h2>
+            <div className="recent-filters scrollbar-none" role="group" aria-label="Filter codes">
+              {RECENT_FILTERS.map((filter) => {
+                const count =
+                  filter.value === "all"
+                    ? allCodes.length
+                    : allCodes.filter((code) => code.status === filter.value).length;
+                return (
+                  <button
+                    key={filter.value}
+                    type="button"
+                    className="recent-filter"
+                    aria-pressed={recentFilter === filter.value}
+                    onClick={() => setRecentFilter(filter.value)}
+                  >
+                    <span>{filter.label}</span>
+                    <span className="recent-filter-count" aria-label={`${count} codes`}>
+                      {count}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
           {recent.length === 0 ? (
-            <p className="empty-copy">None yet. Share the first one.</p>
+            <p className="empty-copy">
+              {allCodes.length === 0
+                ? "None yet. Share the first one."
+                : `No ${selectedFilter?.label.toLowerCase()} codes right now.`}
+            </p>
           ) : (
             <div className="recent-grid codes-grid">
               {recent.map((code) => (
